@@ -1,30 +1,8 @@
-/*
- *  Copyright (c) 1999-2001 Vojtech Pavlik
- */
 
-/*
- *  82C710 C&T mouse port chip driver for Linux
- */
 
-/*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- *
- * Should you need to contact me, the author, you can do so either by
- * e-mail - mail your message to <vojtech@ucw.cz>, or by paper mail:
- * Vojtech Pavlik, Simunkova 1594, Prague 8, 182 00 Czech Republic
- */
+
+
+
 
 #include <linux/delay.h>
 #include <linux/module.h>
@@ -42,18 +20,16 @@ MODULE_AUTHOR("Vojtech Pavlik <vojtech@ucw.cz>");
 MODULE_DESCRIPTION("82C710 C&T mouse port chip driver");
 MODULE_LICENSE("GPL");
 
-/*
- * ct82c710 interface
- */
 
-#define CT82C710_DEV_IDLE     0x01		/* Device Idle */
-#define CT82C710_RX_FULL      0x02		/* Device Char received */
-#define CT82C710_TX_IDLE      0x04		/* Device XMIT Idle */
-#define CT82C710_RESET        0x08		/* Device Reset */
-#define CT82C710_INTS_ON      0x10		/* Device Interrupt On */
-#define CT82C710_ERROR_FLAG   0x20		/* Device Error */
-#define CT82C710_CLEAR        0x40		/* Device Clear */
-#define CT82C710_ENABLE       0x80		/* Device Enable */
+
+#define CT82C710_DEV_IDLE     0x01		
+#define CT82C710_RX_FULL      0x02		
+#define CT82C710_TX_IDLE      0x04		
+#define CT82C710_RESET        0x08		
+#define CT82C710_INTS_ON      0x10		
+#define CT82C710_ERROR_FLAG   0x20		
+#define CT82C710_CLEAR        0x40		
+#define CT82C710_ENABLE       0x80		
 
 #define CT82C710_IRQ          12
 
@@ -64,19 +40,14 @@ static struct serio *ct82c710_port;
 static struct platform_device *ct82c710_device;
 static struct resource ct82c710_iores;
 
-/*
- * Interrupt handler for the 82C710 mouse port. A character
- * is waiting in the 82C710.
- */
+
 
 static irqreturn_t ct82c710_interrupt(int cpl, void *dev_id)
 {
 	return serio_interrupt(ct82c710_port, inb(CT82C710_DATA), 0);
 }
 
-/*
- * Wait for device to send output char and flush any input char.
- */
+
 
 static int ct82c170_wait(void)
 {
@@ -123,7 +94,7 @@ static int ct82c710_open(struct serio *serio)
 	outb_p(status, CT82C710_STATUS);
 
 	status |= CT82C710_INTS_ON;
-	outb_p(status, CT82C710_STATUS);	/* Enable interrupts */
+	outb_p(status, CT82C710_STATUS);	
 
 	while (ct82c170_wait()) {
 		printk(KERN_ERR "ct82c710: Device busy in open()\n");
@@ -136,9 +107,7 @@ static int ct82c710_open(struct serio *serio)
 	return 0;
 }
 
-/*
- * Write to the 82C710 mouse device.
- */
+
 
 static int ct82c710_write(struct serio *port, unsigned char c)
 {
@@ -147,27 +116,25 @@ static int ct82c710_write(struct serio *port, unsigned char c)
 	return 0;
 }
 
-/*
- * See if we can find a 82C710 device. Read mouse address.
- */
+
 
 static int __init ct82c710_detect(void)
 {
-	outb_p(0x55, 0x2fa);				/* Any value except 9, ff or 36 */
-	outb_p(0xaa, 0x3fa);				/* Inverse of 55 */
-	outb_p(0x36, 0x3fa);				/* Address the chip */
-	outb_p(0xe4, 0x3fa);				/* 390/4; 390 = config address */
-	outb_p(0x1b, 0x2fa);				/* Inverse of e4 */
-	outb_p(0x0f, 0x390);				/* Write index */
-	if (inb_p(0x391) != 0xe4)			/* Config address found? */
-		return -ENODEV;				/* No: no 82C710 here */
+	outb_p(0x55, 0x2fa);				
+	outb_p(0xaa, 0x3fa);				
+	outb_p(0x36, 0x3fa);				
+	outb_p(0xe4, 0x3fa);				
+	outb_p(0x1b, 0x2fa);				
+	outb_p(0x0f, 0x390);				
+	if (inb_p(0x391) != 0xe4)			
+		return -ENODEV;				
 
-	outb_p(0x0d, 0x390);				/* Write index */
-	ct82c710_iores.start = inb_p(0x391) << 2;	/* Get mouse I/O address */
+	outb_p(0x0d, 0x390);				
+	ct82c710_iores.start = inb_p(0x391) << 2;	
 	ct82c710_iores.end = ct82c710_iores.start + 1;
 	ct82c710_iores.flags = IORESOURCE_IO;
 	outb_p(0x0f, 0x390);
-	outb_p(0x0f, 0x391);				/* Close config mode */
+	outb_p(0x0f, 0x391);				
 
 	return 0;
 }

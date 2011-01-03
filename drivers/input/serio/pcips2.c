@@ -1,15 +1,4 @@
-/*
- * linux/drivers/input/serio/pcips2.c
- *
- *  Copyright (C) 2003 Russell King, All Rights Reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License.
- *
- *  I'm not sure if this is a generic PS/2 PCI interface or specific to
- *  the Mobility Electronics docking station.
- */
+
 #include <linux/module.h>
 #include <linux/interrupt.h>
 #include <linux/ioport.h>
@@ -188,16 +177,16 @@ static void __devexit pcips2_remove(struct pci_dev *dev)
 
 static struct pci_device_id pcips2_ids[] = {
 	{
-		.vendor		= 0x14f2,	/* MOBILITY */
-		.device		= 0x0123,	/* Keyboard */
+		.vendor		= 0x14f2,	
+		.device		= 0x0123,	
 		.subvendor	= PCI_ANY_ID,
 		.subdevice	= PCI_ANY_ID,
 		.class		= PCI_CLASS_INPUT_KEYBOARD << 8,
 		.class_mask	= 0xffff00,
 	},
 	{
-		.vendor		= 0x14f2,	/* MOBILITY */
-		.device		= 0x0124,	/* Mouse */
+		.vendor		= 0x14f2,	
+		.device		= 0x0124,	
 		.subvendor	= PCI_ANY_ID,
 		.subdevice	= PCI_ANY_ID,
 		.class		= PCI_CLASS_INPUT_MOUSE << 8,

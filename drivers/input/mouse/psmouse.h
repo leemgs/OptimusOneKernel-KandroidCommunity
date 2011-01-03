@@ -7,7 +7,7 @@
 #define PSMOUSE_CMD_GETINFO	0x03e9
 #define PSMOUSE_CMD_SETSTREAM	0x00ea
 #define PSMOUSE_CMD_SETPOLL	0x00f0
-#define PSMOUSE_CMD_POLL	0x00eb	/* caller sets number of bytes to receive */
+#define PSMOUSE_CMD_POLL	0x00eb	
 #define PSMOUSE_CMD_GETID	0x02f2
 #define PSMOUSE_CMD_SETRATE	0x10f3
 #define PSMOUSE_CMD_ENABLE	0x00f4
@@ -28,7 +28,7 @@ enum psmouse_state {
 	PSMOUSE_ACTIVATED,
 };
 
-/* psmouse protocol handler return codes */
+
 typedef enum {
 	PSMOUSE_BAD_DATA,
 	PSMOUSE_GOOD_DATA,
@@ -60,7 +60,7 @@ struct psmouse {
 	unsigned int resolution;
 	unsigned int resetafter;
 	unsigned int resync_time;
-	bool smartscroll;	/* Logitech only */
+	bool smartscroll;	
 
 	psmouse_ret_t (*protocol_handler)(struct psmouse *psmouse);
 	void (*set_rate)(struct psmouse *psmouse, unsigned int rate);
@@ -92,7 +92,7 @@ enum psmouse_type {
 	PSMOUSE_HGPK,
 	PSMOUSE_ELANTECH,
 	PSMOUSE_FSP,
-	PSMOUSE_AUTO		/* This one should always be last */
+	PSMOUSE_AUTO		
 };
 
 void psmouse_queue_work(struct psmouse *psmouse, struct delayed_work *work,
@@ -149,4 +149,4 @@ static struct psmouse_attribute psmouse_attr_##_name = {			\
 	static ssize_t _set(struct psmouse *, void *, const char *, size_t);	\
 	__PSMOUSE_DEFINE_ATTR_VAR(_name, _mode, _data, NULL, _set, true)
 
-#endif /* _PSMOUSE_H */
+#endif 

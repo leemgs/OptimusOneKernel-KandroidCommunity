@@ -1,12 +1,4 @@
-/*
- * Driver for keys on GPIO lines capable of generating interrupts.
- *
- * Copyright 2005 Phil Blundell
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/module.h>
 
@@ -102,7 +94,7 @@ static int __devinit gpio_keys_probe(struct platform_device *pdev)
 	input->id.product = 0x0001;
 	input->id.version = 0x0100;
 
-	/* Enable auto repeat feature of Linux input subsystem */
+	
 	if (pdata->rep)
 		__set_bit(EV_REP, input->evbit);
 

@@ -1,16 +1,4 @@
-/*
- *  Keyboard driver for Sharp Tosa models (SL-6000x)
- *
- *  Copyright (c) 2005 Dirk Opfer
- *  Copyright (c) 2007 Dmitry Baryshkov
- *
- *  Based on xtkbd.c/locomkbd.c/corgikbd.c
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -53,23 +41,17 @@ struct tosakbd {
 	unsigned short keycode[ARRAY_SIZE(tosakbd_keycode)];
 	struct input_dev *input;
 	bool suspended;
-	spinlock_t lock; /* protect kbd scanning */
+	spinlock_t lock; 
 	struct timer_list timer;
 };
 
 
-/* Helper functions for reading the keyboard matrix
- * Note: We should really be using the generic gpio functions to alter
- *       GPDR but it requires a function call per GPIO bit which is
- *       excessive when we need to access 12 bits at once, multiple times.
- * These functions must be called within local_irq_save()/local_irq_restore()
- * or similar.
- */
+
 #define GET_ROWS_STATUS(c)	((GPLR2 & TOSA_GPIO_ALL_SENSE_BIT) >> TOSA_GPIO_ALL_SENSE_RSHIFT)
 
 static inline void tosakbd_discharge_all(void)
 {
-	/* STROBE All HiZ */
+	
 	GPCR1  = TOSA_GPIO_HIGH_STROBE_BIT;
 	GPDR1 &= ~TOSA_GPIO_HIGH_STROBE_BIT;
 	GPCR2  = TOSA_GPIO_LOW_STROBE_BIT;
@@ -78,7 +60,7 @@ static inline void tosakbd_discharge_all(void)
 
 static inline void tosakbd_activate_all(void)
 {
-	/* STROBE ALL -> High */
+	
 	GPSR1  = TOSA_GPIO_HIGH_STROBE_BIT;
 	GPDR1 |= TOSA_GPIO_HIGH_STROBE_BIT;
 	GPSR2  = TOSA_GPIO_LOW_STROBE_BIT;
@@ -86,18 +68,18 @@ static inline void tosakbd_activate_all(void)
 
 	udelay(KB_DISCHARGE_DELAY);
 
-	/* STATE CLEAR */
+	
 	GEDR2 |= TOSA_GPIO_ALL_SENSE_BIT;
 }
 
 static inline void tosakbd_activate_col(int col)
 {
 	if (col <= 5) {
-		/* STROBE col -> High, not col -> HiZ */
+		
 		GPSR1 = TOSA_GPIO_STROBE_BIT(col);
 		GPDR1 = (GPDR1 & ~TOSA_GPIO_HIGH_STROBE_BIT) | TOSA_GPIO_STROBE_BIT(col);
 	} else {
-		/* STROBE col -> High, not col -> HiZ */
+		
 		GPSR2 = TOSA_GPIO_STROBE_BIT(col);
 		GPDR2 = (GPDR2 & ~TOSA_GPIO_LOW_STROBE_BIT) | TOSA_GPIO_STROBE_BIT(col);
 	}
@@ -106,24 +88,20 @@ static inline void tosakbd_activate_col(int col)
 static inline void tosakbd_reset_col(int col)
 {
 	if (col <= 5) {
-		/* STROBE col -> Low */
+		
 		GPCR1 = TOSA_GPIO_STROBE_BIT(col);
-		/* STROBE col -> out, not col -> HiZ */
+		
 		GPDR1 = (GPDR1 & ~TOSA_GPIO_HIGH_STROBE_BIT) | TOSA_GPIO_STROBE_BIT(col);
 	} else {
-		/* STROBE col -> Low */
+		
 		GPCR2 = TOSA_GPIO_STROBE_BIT(col);
-		/* STROBE col -> out, not col -> HiZ */
+		
 		GPDR2 = (GPDR2 & ~TOSA_GPIO_LOW_STROBE_BIT) | TOSA_GPIO_STROBE_BIT(col);
 	}
 }
-/*
- * The tosa keyboard only generates interrupts when a key is pressed.
- * So when a key is pressed, we enable a timer.  This timer scans the
- * keyboard, and this is how we detect when the key is released.
- */
 
-/* Scan the hardware keyboard and push any changes up through the input layer */
+
+
 static void tosakbd_scankeyboard(struct platform_device *dev)
 {
 	struct tosakbd *tosakbd = platform_get_drvdata(dev);
@@ -137,10 +115,7 @@ static void tosakbd_scankeyboard(struct platform_device *dev)
 		goto out;
 
 	for (col = 0; col < TOSA_KEY_STROBE_NUM; col++) {
-		/*
-		 * Discharge the output driver capacitatance
-		 * in the keyboard matrix. (Yes it is significant..)
-		 */
+		
 		tosakbd_discharge_all();
 		udelay(KB_DISCHARGE_DELAY);
 
@@ -173,7 +148,7 @@ static void tosakbd_scankeyboard(struct platform_device *dev)
 
 	input_sync(tosakbd->input);
 
-	/* if any keys are pressed, enable the timer */
+	
 	if (num_pressed)
 		mod_timer(&tosakbd->timer, jiffies + SCAN_INTERVAL);
 
@@ -181,16 +156,14 @@ static void tosakbd_scankeyboard(struct platform_device *dev)
 	spin_unlock_irqrestore(&tosakbd->lock, flags);
 }
 
-/*
- * tosa keyboard interrupt handler.
- */
+
 static irqreturn_t tosakbd_interrupt(int irq, void *__dev)
 {
 	struct platform_device *dev = __dev;
 	struct tosakbd *tosakbd = platform_get_drvdata(dev);
 
 	if (!timer_pending(&tosakbd->timer)) {
-		/** wait chattering delay **/
+		
 		udelay(20);
 		tosakbd_scankeyboard(dev);
 	}
@@ -198,9 +171,7 @@ static irqreturn_t tosakbd_interrupt(int irq, void *__dev)
 	return IRQ_HANDLED;
 }
 
-/*
- * tosa timer checking for released keys
- */
+
 static void tosakbd_timer_callback(unsigned long __dev)
 {
 	struct platform_device *dev = (struct platform_device *)__dev;
@@ -258,7 +229,7 @@ static int __devinit tosakbd_probe(struct platform_device *pdev) {
 
 	spin_lock_init(&tosakbd->lock);
 
-	/* Init Keyboard rescan timer */
+	
 	init_timer(&tosakbd->timer);
 	tosakbd->timer.function = tosakbd_timer_callback;
 	tosakbd->timer.data = (unsigned long) pdev;
@@ -286,7 +257,7 @@ static int __devinit tosakbd_probe(struct platform_device *pdev) {
 		__set_bit(tosakbd->keycode[i], input_dev->keybit);
 	__clear_bit(KEY_RESERVED, input_dev->keybit);
 
-	/* Setup sense interrupts - RisingEdge Detect, sense lines as inputs */
+	
 	for (i = 0; i < TOSA_KEY_SENSE_NUM; i++) {
 		int gpio = TOSA_GPIO_KEY_SENSE(i);
 		int irq;
@@ -328,7 +299,7 @@ static int __devinit tosakbd_probe(struct platform_device *pdev) {
 		}
 	}
 
-	/* Set Strobe lines as outputs - set high */
+	
 	for (i = 0; i < TOSA_KEY_STROBE_NUM; i++) {
 		int gpio = TOSA_GPIO_KEY_STROBE(i);
 		error = gpio_request(gpio, "tosakbd");

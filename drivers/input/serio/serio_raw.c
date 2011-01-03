@@ -1,13 +1,4 @@
-/*
- * Raw serio device providing access to a raw byte stream from underlying
- * serio port. Closely emulates behavior of pre-2.6 /dev/psaux device
- *
- * Copyright (c) 2004 Dmitry Torokhov
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published by
- * the Free Software Foundation.
- */
+
 
 #include <linux/sched.h>
 #include <linux/slab.h>
@@ -52,9 +43,7 @@ static DEFINE_MUTEX(serio_raw_mutex);
 static LIST_HEAD(serio_raw_list);
 static unsigned int serio_raw_no;
 
-/*********************************************************************
- *             Interface with userspace (file operations)            *
- *********************************************************************/
+
 
 static int serio_raw_fasync(int fd, struct file *file, int on)
 {
@@ -247,9 +236,7 @@ static const struct file_operations serio_raw_fops = {
 };
 
 
-/*********************************************************************
- *                   Interface with serio port   	             *
- *********************************************************************/
+
 
 static irqreturn_t serio_raw_interrupt(struct serio *serio, unsigned char data,
 					unsigned int dfl)
@@ -258,7 +245,7 @@ static irqreturn_t serio_raw_interrupt(struct serio *serio, unsigned char data,
 	struct serio_raw_list *list;
 	unsigned int head = serio_raw->head;
 
-	/* we are holding serio->lock here so we are prootected */
+	
 	serio_raw->queue[head] = data;
 	head = (head + 1) % SERIO_RAW_QUEUE_LEN;
 	if (likely(head != serio_raw->tail)) {
@@ -339,10 +326,7 @@ static int serio_raw_reconnect(struct serio *serio)
 		return -1;
 	}
 
-	/*
-	 * Nothing needs to be done here, we just need this method to
-	 * keep the same device.
-	 */
+	
 	return 0;
 }
 

@@ -1,17 +1,4 @@
-/*
- * rotary_encoder.c
- *
- * (c) 2009 Daniel Mack <daniel@caiaq.de>
- *
- * state machine code inspired by code from Tim Ruetz
- *
- * A generic driver for rotary encoders connected to GPIO lines.
- * See file:Documentation/input/rotary_encoder.txt for more information
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -36,7 +23,7 @@ struct rotary_encoder {
 	unsigned int irq_b;
 
 	bool armed;
-	unsigned char dir;	/* 0 - clockwise, 1 - CCW */
+	unsigned char dir;	
 };
 
 static irqreturn_t rotary_encoder_irq(int irq, void *dev_id)
@@ -64,13 +51,13 @@ static irqreturn_t rotary_encoder_irq(int irq, void *dev_id)
 			unsigned int pos = encoder->pos;
 
 			if (encoder->dir) {
-				/* turning counter-clockwise */
+				
 				if (pdata->rollover)
 					pos += pdata->steps;
 				if (pos)
 					pos--;
 			} else {
-				/* turning clockwise */
+				
 				if (pdata->rollover || pos < pdata->steps)
 					pos++;
 			}
@@ -124,7 +111,7 @@ static int __devinit rotary_encoder_probe(struct platform_device *pdev)
 	encoder->irq_a = gpio_to_irq(pdata->gpio_a);
 	encoder->irq_b = gpio_to_irq(pdata->gpio_b);
 
-	/* create and register the input driver */
+	
 	input->name = pdev->name;
 	input->id.bustype = BUS_HOST;
 	input->dev.parent = &pdev->dev;
@@ -144,7 +131,7 @@ static int __devinit rotary_encoder_probe(struct platform_device *pdev)
 		goto exit_free_mem;
 	}
 
-	/* request the GPIOs */
+	
 	err = gpio_request(pdata->gpio_a, DRV_NAME);
 	if (err) {
 		dev_err(&pdev->dev, "unable to request GPIO %d\n",
@@ -159,7 +146,7 @@ static int __devinit rotary_encoder_probe(struct platform_device *pdev)
 		goto exit_free_gpio_a;
 	}
 
-	/* request the IRQs */
+	
 	err = request_irq(encoder->irq_a, &rotary_encoder_irq,
 			  IORESOURCE_IRQ_HIGHEDGE | IORESOURCE_IRQ_LOWEDGE,
 			  DRV_NAME, encoder);
@@ -190,7 +177,7 @@ exit_free_gpio_a:
 	gpio_free(pdata->gpio_a);
 exit_unregister_input:
 	input_unregister_device(input);
-	input = NULL; /* so we don't try to free it */
+	input = NULL; 
 exit_free_mem:
 	input_free_device(input);
 	kfree(encoder);

@@ -1,9 +1,4 @@
-/*
- *  Driver for PC-speaker like devices found on various Sparc systems.
- *
- *  Copyright (c) 2002 Vojtech Pavlik
- *  Copyright (c) 2002, 2006, 2008 David S. Miller (davem@davemloft.net)
- */
+
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/init.h>
@@ -121,15 +116,15 @@ static int grover_spkr_event(struct input_dev *dev, unsigned int type, unsigned 
 	spin_lock_irqsave(&state->lock, flags);
 
 	if (count) {
-		/* enable counter 2 */
+		
 		outb(inb(info->enable_reg) | 3, info->enable_reg);
-		/* set command for counter 2, 2 byte write */
+		
 		outb(0xB6, info->freq_regs + 1);
-		/* select desired HZ */
+		
 		outb(count & 0xff, info->freq_regs + 0);
 		outb((count >> 8) & 0xff, info->freq_regs + 0);
 	} else {
-		/* disable counter 2 */
+		
 		outb(inb_p(info->enable_reg) & 0xFC, info->enable_reg);
 	}
 
@@ -177,7 +172,7 @@ static int sparcspkr_shutdown(struct of_device *dev)
 	struct sparcspkr_state *state = dev_get_drvdata(&dev->dev);
 	struct input_dev *input_dev = state->input_dev;
 
-	/* turn off the speaker */
+	
 	state->event(input_dev, EV_SND, SND_BELL, 0);
 
 	return 0;
@@ -236,7 +231,7 @@ static int __devexit bbc_remove(struct of_device *op)
 	struct input_dev *input_dev = state->input_dev;
 	struct bbc_beep_info *info = &state->u.bbc;
 
-	/* turn off the speaker */
+	
 	state->event(input_dev, EV_SND, SND_BELL, 0);
 
 	input_unregister_device(input_dev);
@@ -314,7 +309,7 @@ static int __devexit grover_remove(struct of_device *op)
 	struct grover_beep_info *info = &state->u.grover;
 	struct input_dev *input_dev = state->input_dev;
 
-	/* turn off the speaker */
+	
 	state->event(input_dev, EV_SND, SND_BELL, 0);
 
 	input_unregister_device(input_dev);

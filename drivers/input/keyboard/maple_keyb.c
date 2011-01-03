@@ -1,24 +1,4 @@
-/*
- * SEGA Dreamcast keyboard driver
- * Based on drivers/usb/usbkbd.c
- * Copyright (c) YAEGASHI Takeshi, 2001
- * Porting to 2.6 Copyright (c) Adrian McMenamin, 2007 - 2009
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, see the file COPYING, or write
- * to the Free Software Foundation, Inc.,
- * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- */
+
 
 #include <linux/kernel.h>
 #include <linux/slab.h>
@@ -28,7 +8,7 @@
 #include <linux/timer.h>
 #include <linux/maple.h>
 
-/* Very simple mutex to ensure proper cleanup */
+
 static DEFINE_MUTEX(maple_keyb_mutex);
 
 #define NR_SCANCODES 256
@@ -142,10 +122,7 @@ static void dc_kbd_callback(struct mapleq *mq)
 	struct dc_kbd *kbd = maple_get_drvdata(mapledev);
 	unsigned long *buf = (unsigned long *)(mq->recvbuf->buf);
 
-	/*
-	 * We should always get the lock because the only
-	 * time it may be locked is if the driver is in the cleanup phase.
-	 */
+	
 	if (likely(mutex_trylock(&maple_keyb_mutex))) {
 
 		if (buf[1] == mapledev->function) {
@@ -202,7 +179,7 @@ static int probe_maple_kbd(struct device *dev)
 	if (error)
 		goto fail_register;
 
-	/* Maple polling is locked to VBLANK - which may be just 50/s */
+	
 	maple_getcond_callback(mdev, dc_kbd_callback, HZ/50,
 		MAPLE_FUNC_KEYBOARD);
 

@@ -1,16 +1,4 @@
-/*
- * Fujitsu B-series Lifebook PS/2 TouchScreen driver
- *
- * Copyright (c) 2005 Vojtech Pavlik <vojtech@suse.cz>
- * Copyright (c) 2005 Kenan Esau <kenan.esau@conan.de>
- *
- * TouchScreen detection, absolute mode setting and packet layout is taken from
- * Harald Hoyer's description of the device.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published by
- * the Free Software Foundation.
- */
+
 
 #include <linux/input.h>
 #include <linux/serio.h>
@@ -21,7 +9,7 @@
 #include "lifebook.h"
 
 struct lifebook_data {
-	struct input_dev *dev2;		/* Relative device */
+	struct input_dev *dev2;		
 	char phys[32];
 };
 
@@ -150,7 +138,7 @@ static psmouse_ret_t lifebook_process_byte(struct psmouse *psmouse)
 				return PSMOUSE_BAD_DATA;
 			if ((packet[5] & 0xc0) != (packet[1] & 0xc0))
 				return PSMOUSE_BAD_DATA;
-			break; /* report data */
+			break; 
 		}
 	}
 
@@ -197,11 +185,7 @@ static int lifebook_absolute_mode(struct psmouse *psmouse)
 	if (psmouse_reset(psmouse))
 		return -1;
 
-	/*
-	   Enable absolute output -- ps2_command fails always but if
-	   you leave this call out the touchsreen will never send
-	   absolute coordinates
-	*/
+	
 	param = lifebook_use_6byte_proto ? 0x08 : 0x07;
 	ps2_command(ps2dev, &param, PSMOUSE_CMD_SETRES);
 
@@ -327,10 +311,7 @@ int lifebook_init(struct psmouse *psmouse)
 
 	psmouse->model = lifebook_use_6byte_proto ? 6 : 3;
 
-	/*
-	 * Use packet size = 3 even when using 6-byte protocol because
-	 * that's what POLL will return on Lifebooks (according to spec).
-	 */
+	
 	psmouse->pktsize = 3;
 
 	return 0;

@@ -1,31 +1,8 @@
-/*
- *  Copyright (c) 2000-2001 Vojtech Pavlik
- *  Copyright (c) 2000 Mark Fletcher
- */
 
-/*
- * Gravis Stinger gamepad driver for Linux
- */
 
-/*
- * This program is free warftware; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- *
- *  Should you need to contact me, the author, you can do so either by
- * e-mail - mail your message to <vojtech@ucw.cz>, or by paper mail:
- * Vojtech Pavlik, Simunkova 1594, Prague 8, 182 00 Czech Republic
- */
+
+
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -40,15 +17,11 @@ MODULE_AUTHOR("Vojtech Pavlik <vojtech@ucw.cz>");
 MODULE_DESCRIPTION(DRIVER_DESC);
 MODULE_LICENSE("GPL");
 
-/*
- * Constants.
- */
+
 
 #define STINGER_MAX_LENGTH 8
 
-/*
- * Per-Stinger data.
- */
+
 
 struct stinger {
 	struct input_dev *dev;
@@ -57,10 +30,7 @@ struct stinger {
 	char phys[32];
 };
 
-/*
- * stinger_process_packet() decodes packets the driver receives from the
- * Stinger. It updates the data accordingly.
- */
+
 
 static void stinger_process_packet(struct stinger *stinger)
 {
@@ -88,18 +58,14 @@ static void stinger_process_packet(struct stinger *stinger)
 	return;
 }
 
-/*
- * stinger_interrupt() is called by the low level driver when characters
- * are ready for us. We then buffer them for further processing, or call the
- * packet processing routine.
- */
+
 
 static irqreturn_t stinger_interrupt(struct serio *serio,
 	unsigned char data, unsigned int flags)
 {
 	struct stinger *stinger = serio_get_drvdata(serio);
 
-	/* All Stinger packets are 4 bytes */
+	
 
 	if (stinger->idx < STINGER_MAX_LENGTH)
 		stinger->data[stinger->idx++] = data;
@@ -112,9 +78,7 @@ static irqreturn_t stinger_interrupt(struct serio *serio,
 	return IRQ_HANDLED;
 }
 
-/*
- * stinger_disconnect() is the opposite of stinger_connect()
- */
+
 
 static void stinger_disconnect(struct serio *serio)
 {
@@ -126,11 +90,7 @@ static void stinger_disconnect(struct serio *serio)
 	kfree(stinger);
 }
 
-/*
- * stinger_connect() is the routine that is called when someone adds a
- * new serio device that supports Stinger protocol and registers it as
- * an input device.
- */
+
 
 static int stinger_connect(struct serio *serio, struct serio_driver *drv)
 {
@@ -181,9 +141,7 @@ static int stinger_connect(struct serio *serio, struct serio_driver *drv)
 	return err;
 }
 
-/*
- * The serio driver structure.
- */
+
 
 static struct serio_device_id stinger_serio_ids[] = {
 	{
@@ -208,9 +166,7 @@ static struct serio_driver stinger_drv = {
 	.disconnect	= stinger_disconnect,
 };
 
-/*
- * The functions for inserting/removing us as a module.
- */
+
 
 static int __init stinger_init(void)
 {

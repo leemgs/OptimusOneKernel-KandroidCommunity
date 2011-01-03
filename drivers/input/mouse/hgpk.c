@@ -1,33 +1,6 @@
-/*
- * OLPC HGPK (XO-1) touchpad PS/2 mouse driver
- *
- * Copyright (c) 2006-2008 One Laptop Per Child
- * Authors:
- *   Zephaniah E. Hull
- *   Andres Salomon <dilinger@debian.org>
- *
- * This driver is partly based on the ALPS driver, which is:
- *
- * Copyright (c) 2003 Neil Brown <neilb@cse.unsw.edu.au>
- * Copyright (c) 2003-2005 Peter Osterlund <petero2@telia.com>
- * Copyright (c) 2004 Dmitry Torokhov <dtor@mail.ru>
- * Copyright (c) 2005 Vojtech Pavlik <vojtech@suse.cz>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- */
 
-/*
- * The spec from ALPS is available from
- * <http://wiki.laptop.org/go/Touch_Pad/Tablet>.  It refers to this
- * device as HGPK (Hybrid GS, PT, and Keymatrix).
- *
- * The earliest versions of the device had simultaneous reporting; that
- * was removed.  After that, the device used the Advanced Mode GS/PT streaming
- * stuff.  That turned out to be too buggy to support, so we've finally
- * switched to Mouse Mode (which utilizes only the center 1/3 of the touchpad).
- */
+
+
 
 #define DEBUG
 #include <linux/input.h>
@@ -72,14 +45,7 @@ static int autorecal = 1;
 module_param(autorecal, int, 0644);
 MODULE_PARM_DESC(autorecal, "enable recalibration in the driver");
 
-/*
- * When the touchpad gets ultra-sensitive, one can keep their finger 1/2"
- * above the pad and still have it send packets.  This causes a jump cursor
- * when one places their finger on the pad.  We can probably detect the
- * jump as we see a large deltas (>= 100px).  In mouse mode, I've been
- * unable to even come close to 100px deltas during normal usage, so I think
- * this threshold is safe.  If a large delta occurs, trigger a recalibration.
- */
+
 static void hgpk_jumpy_hack(struct psmouse *psmouse, int x, int y)
 {
 	struct hgpk_data *priv = psmouse->private;
@@ -87,35 +53,19 @@ static void hgpk_jumpy_hack(struct psmouse *psmouse, int x, int y)
 	if (abs(x) > recalib_delta || abs(y) > recalib_delta) {
 		hgpk_err(psmouse, ">%dpx jump detected (%d,%d)\n",
 				recalib_delta, x, y);
-		/* My car gets forty rods to the hogshead and that's the
-		 * way I likes it! */
+		
 		psmouse_queue_work(psmouse, &priv->recalib_wq,
 				msecs_to_jiffies(jumpy_delay));
 	}
 }
 
-/*
- * We have no idea why this particular hardware bug occurs.  The touchpad
- * will randomly start spewing packets without anything touching the
- * pad.  This wouldn't necessarily be bad, but it's indicative of a
- * severely miscalibrated pad; attempting to use the touchpad while it's
- * spewing means the cursor will jump all over the place, and act "drunk".
- *
- * The packets that are spewed tend to all have deltas between -2 and 2, and
- * the cursor will move around without really going very far.  It will
- * tend to end up in the same location; if we tally up the changes over
- * 100 packets, we end up w/ a final delta of close to 0.  This happens
- * pretty regularly when the touchpad is spewing, and is pretty hard to
- * manually trigger (at least for *my* fingers).  So, it makes a perfect
- * scheme for detecting spews.
- */
+
 static void hgpk_spewing_hack(struct psmouse *psmouse,
 			      int l, int r, int x, int y)
 {
 	struct hgpk_data *priv = psmouse->private;
 
-	/* ignore button press packets; many in a row could trigger
-	 * a false-positive! */
+	
 	if (l || r)
 		return;
 
@@ -129,24 +79,14 @@ static void hgpk_spewing_hack(struct psmouse *psmouse,
 			psmouse_queue_work(psmouse, &priv->recalib_wq,
 					   msecs_to_jiffies(spew_delay));
 		}
-		/* reset every 100 packets */
+		
 		priv->count = 0;
 		priv->x_tally = 0;
 		priv->y_tally = 0;
 	}
 }
 
-/*
- * HGPK Mouse Mode format (standard mouse format, sans middle button)
- *
- * byte 0:	y-over	x-over	y-neg	x-neg	1	0	swr	swl
- * byte 1:	x7	x6	x5	x4	x3	x2	x1	x0
- * byte 2:	y7	y6	y5	y4	y3	y2	y1	y0
- *
- * swr/swl are the left/right buttons.
- * x-neg/y-neg are the x and y delta negative bits
- * x-over/y-over are the x and y overflow bits
- */
+
 static int hgpk_validate_byte(unsigned char *packet)
 {
 	return (packet[0] & 0x0C) != 0x08;
@@ -197,10 +137,7 @@ static psmouse_ret_t hgpk_process_byte(struct psmouse *psmouse)
 
 	if (priv->recalib_window) {
 		if (time_before(jiffies, priv->recalib_window)) {
-			/*
-			 * ugh, got a packet inside our recalibration
-			 * window, schedule another recalibration.
-			 */
+			
 			hgpk_dbg(psmouse,
 				 "packet inside calibration window, "
 				 "queueing another recalibration\n");
@@ -218,17 +155,17 @@ static int hgpk_force_recalibrate(struct psmouse *psmouse)
 	struct ps2dev *ps2dev = &psmouse->ps2dev;
 	struct hgpk_data *priv = psmouse->private;
 
-	/* C-series touchpads added the recalibrate command */
+	
 	if (psmouse->model < HGPK_MODEL_C)
 		return 0;
 
-	/* we don't want to race with the irq handler, nor with resyncs */
+	
 	psmouse_set_state(psmouse, PSMOUSE_INITIALIZING);
 
-	/* start by resetting the device */
+	
 	psmouse_reset(psmouse);
 
-	/* send the recalibrate request */
+	
 	if (ps2_command(ps2dev, NULL, 0xf5) ||
 	    ps2_command(ps2dev, NULL, 0xf5) ||
 	    ps2_command(ps2dev, NULL, 0xe6) ||
@@ -236,54 +173,36 @@ static int hgpk_force_recalibrate(struct psmouse *psmouse)
 		return -1;
 	}
 
-	/* according to ALPS, 150mS is required for recalibration */
+	
 	msleep(150);
 
-	/* XXX: If a finger is down during this delay, recalibration will
-	 * detect capacitance incorrectly.  This is a hardware bug, and
-	 * we don't have a good way to deal with it.  The 2s window stuff
-	 * (below) is our best option for now.
-	 */
+	
 
 	if (ps2_command(ps2dev, NULL, PSMOUSE_CMD_ENABLE))
 		return -1;
 
 	psmouse_set_state(psmouse, PSMOUSE_ACTIVATED);
 
-	/* After we recalibrate, we shouldn't get any packets for 2s.  If
-	 * we do, it's likely that someone's finger was on the touchpad.
-	 * If someone's finger *was* on the touchpad, it's probably
-	 * miscalibrated.  So, we should schedule another recalibration
-	 */
+	
 	priv->recalib_window = jiffies +  msecs_to_jiffies(recal_guard_time);
 
 	return 0;
 }
 
-/*
- * This kills power to the touchpad; according to ALPS, current consumption
- * goes down to 50uA after running this.  To turn power back on, we drive
- * MS-DAT low.
- */
+
 static int hgpk_toggle_power(struct psmouse *psmouse, int enable)
 {
 	struct ps2dev *ps2dev = &psmouse->ps2dev;
 	int timeo;
 
-	/* Added on D-series touchpads */
+	
 	if (psmouse->model < HGPK_MODEL_D)
 		return 0;
 
 	if (enable) {
 		psmouse_set_state(psmouse, PSMOUSE_INITIALIZING);
 
-		/*
-		 * Sending a byte will drive MS-DAT low; this will wake up
-		 * the controller.  Once we get an ACK back from it, it
-		 * means we can continue with the touchpad re-init.  ALPS
-		 * tells us that 1s should be long enough, so set that as
-		 * the upper bound.
-		 */
+		
 		for (timeo = 20; timeo > 0; timeo--) {
 			if (!ps2_sendbyte(&psmouse->ps2dev,
 					PSMOUSE_CMD_DISABLE, 20))
@@ -293,7 +212,7 @@ static int hgpk_toggle_power(struct psmouse *psmouse, int enable)
 
 		psmouse_reset(psmouse);
 
-		/* should be all set, enable the touchpad */
+		
 		ps2_command(&psmouse->ps2dev, NULL, PSMOUSE_CMD_ENABLE);
 		psmouse_set_state(psmouse, PSMOUSE_ACTIVATED);
 
@@ -307,7 +226,7 @@ static int hgpk_toggle_power(struct psmouse *psmouse, int enable)
 			return -1;
 		}
 
-		/* probably won't see an ACK, the touchpad will be off */
+		
 		ps2_sendbyte(&psmouse->ps2dev, 0xec, 20);
 	}
 
@@ -316,15 +235,13 @@ static int hgpk_toggle_power(struct psmouse *psmouse, int enable)
 
 static int hgpk_poll(struct psmouse *psmouse)
 {
-	/* We can't poll, so always return failure. */
+	
 	return -1;
 }
 
 static int hgpk_reconnect(struct psmouse *psmouse)
 {
-	/* During suspend/resume the ps2 rails remain powered.  We don't want
-	 * to do a reset because it's flush data out of buffers; however,
-	 * earlier prototypes (B1) had some brokenness that required a reset. */
+	
 	if (olpc_board_at_least(olpc_board(0xb2)))
 		if (psmouse->ps2dev.serio->dev.power.power_state.event !=
 				PM_EVENT_ON)
@@ -354,10 +271,7 @@ static ssize_t hgpk_set_powered(struct psmouse *psmouse, void *data,
 		return -EINVAL;
 
 	if (value != priv->powered) {
-		/*
-		 * hgpk_toggle_power will deal w/ state so
-		 * we're not racing w/ irq
-		 */
+		
 		err = hgpk_toggle_power(psmouse, value);
 		if (!err)
 			priv->powered = value;
@@ -386,11 +300,7 @@ static ssize_t hgpk_trigger_recal(struct psmouse *psmouse, void *data,
 	if (err || value != 1)
 		return -EINVAL;
 
-	/*
-	 * We queue work instead of doing recalibration right here
-	 * to avoid adding locking to to hgpk_force_recalibrate()
-	 * since workqueue provides serialization.
-	 */
+	
 	psmouse_queue_work(psmouse, &priv->recalib_wq, 0);
 	return count;
 }
@@ -430,10 +340,10 @@ static int hgpk_register(struct psmouse *psmouse)
 	struct input_dev *dev = psmouse->dev;
 	int err;
 
-	/* unset the things that psmouse-base sets which we don't have */
+	
 	__clear_bit(BTN_MIDDLE, dev->keybit);
 
-	/* set the things we do have */
+	
 	__set_bit(EV_KEY, dev->evbit);
 	__set_bit(EV_REL, dev->evbit);
 
@@ -443,16 +353,16 @@ static int hgpk_register(struct psmouse *psmouse)
 	__set_bit(BTN_LEFT, dev->keybit);
 	__set_bit(BTN_RIGHT, dev->keybit);
 
-	/* register handlers */
+	
 	psmouse->protocol_handler = hgpk_process_byte;
 	psmouse->poll = hgpk_poll;
 	psmouse->disconnect = hgpk_disconnect;
 	psmouse->reconnect = hgpk_reconnect;
 	psmouse->pktsize = 3;
 
-	/* Disable the idle resync. */
+	
 	psmouse->resync_time = 0;
-	/* Reset after a lot of bad bytes. */
+	
 	psmouse->resetafter = 1024;
 
 	err = device_create_file(&psmouse->ps2dev.serio->dev,
@@ -462,7 +372,7 @@ static int hgpk_register(struct psmouse *psmouse)
 		return err;
 	}
 
-	/* C-series touchpads added the recalibrate command */
+	
 	if (psmouse->model >= HGPK_MODEL_C) {
 		err = device_create_file(&psmouse->ps2dev.serio->dev,
 					 &psmouse_attr_recalibrate.dattr);
@@ -513,7 +423,7 @@ static enum hgpk_model_t hgpk_get_model(struct psmouse *psmouse)
 	struct ps2dev *ps2dev = &psmouse->ps2dev;
 	unsigned char param[3];
 
-	/* E7, E7, E7, E9 gets us a 3 byte identifier */
+	
 	if (ps2_command(ps2dev,  NULL, PSMOUSE_CMD_SETSCALE21) ||
 	    ps2_command(ps2dev,  NULL, PSMOUSE_CMD_SETSCALE21) ||
 	    ps2_command(ps2dev,  NULL, PSMOUSE_CMD_SETSCALE21) ||
@@ -523,7 +433,7 @@ static enum hgpk_model_t hgpk_get_model(struct psmouse *psmouse)
 
 	hgpk_dbg(psmouse, "ID: %02x %02x %02x\n", param[0], param[1], param[2]);
 
-	/* HGPK signature: 0x67, 0x00, 0x<model> */
+	
 	if (param[0] != 0x67 || param[1] != 0x00)
 		return -ENODEV;
 

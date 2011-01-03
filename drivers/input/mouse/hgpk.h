@@ -1,22 +1,20 @@
-/*
- * OLPC HGPK (XO-1) touchpad PS/2 mouse driver
- */
+
 
 #ifndef _HGPK_H
 #define _HGPK_H
 
 enum hgpk_model_t {
-	HGPK_MODEL_PREA = 0x0a,	/* pre-B1s */
-	HGPK_MODEL_A = 0x14,	/* found on B1s, PT disabled in hardware */
-	HGPK_MODEL_B = 0x28,	/* B2s, has capacitance issues */
+	HGPK_MODEL_PREA = 0x0a,	
+	HGPK_MODEL_A = 0x14,	
+	HGPK_MODEL_B = 0x28,	
 	HGPK_MODEL_C = 0x3c,
-	HGPK_MODEL_D = 0x50,	/* C1, mass production */
+	HGPK_MODEL_D = 0x50,	
 };
 
 struct hgpk_data {
 	struct psmouse *psmouse;
 	bool powered;
-	int count, x_tally, y_tally;	/* hardware workaround stuff */
+	int count, x_tally, y_tally;	
 	unsigned long recalib_window;
 	struct delayed_work recalib_wq;
 };

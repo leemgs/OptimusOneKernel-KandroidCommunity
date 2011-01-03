@@ -1,30 +1,8 @@
-/*
- *  Copyright (c) 2000 Justin Cormack
- */
 
-/*
- * Newton keyboard driver for Linux
- */
 
-/*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- *
- * Should you need to contact me, the author, you can do so either by
- * e-mail - mail your message to <j.cormack@doc.ic.ac.uk>, or by paper mail:
- * Justin Cormack, 68 Dartmouth Park Road, London NW5 1SN, UK.
- */
+
+
+
 
 #include <linux/slab.h>
 #include <linux/module.h>
@@ -69,13 +47,13 @@ static irqreturn_t nkbd_interrupt(struct serio *serio,
 {
 	struct nkbd *nkbd = serio_get_drvdata(serio);
 
-	/* invalid scan codes are probably the init sequence, so we ignore them */
+	
 	if (nkbd->keycode[data & NKBD_KEY]) {
 		input_report_key(nkbd->dev, nkbd->keycode[data & NKBD_KEY], data & NKBD_PRESS);
 		input_sync(nkbd->dev);
 	}
 
-	else if (data == 0xe7) /* end of init sequence */
+	else if (data == 0xe7) 
 		printk(KERN_INFO "input: %s on %s\n", nkbd->dev->name, serio->phys);
 	return IRQ_HANDLED;
 

@@ -1,33 +1,8 @@
-/*
- *  Copyright (c) 2000-2001 Vojtech Pavlik
- *
- *  Based on the work of:
- *	Hamish Macdonald
- */
 
-/*
- * Amiga keyboard driver for Linux/m68k
- */
 
-/*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- *
- * Should you need to contact me, the author, you can do so either by
- * e-mail - mail your message to <vojtech@ucw.cz>, or by paper mail:
- * Vojtech Pavlik, Simunkova 1594, Prague 8, 182 00 Czech Republic
- */
+
+
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -160,16 +135,16 @@ static irqreturn_t amikbd_interrupt(int irq, void *dummy)
 {
 	unsigned char scancode, down;
 
-	scancode = ~ciaa.sdr;		/* get and invert scancode (keyboard is active low) */
-	ciaa.cra |= 0x40;		/* switch SP pin to output for handshake */
-	udelay(85);			/* wait until 85 us have expired */
-	ciaa.cra &= ~0x40;		/* switch CIA serial port to input mode */
+	scancode = ~ciaa.sdr;		
+	ciaa.cra |= 0x40;		
+	udelay(85);			
+	ciaa.cra &= ~0x40;		
 
-	down = !(scancode & 1);		/* lowest bit is release bit */
+	down = !(scancode & 1);		
 	scancode >>= 1;
 
-	if (scancode < 0x78) {		/* scancodes < 0x78 are keys */
-		if (scancode == 98) {	/* CapsLock is a toggle switch key on Amiga */
+	if (scancode < 0x78) {		
+		if (scancode == 98) {	
 			input_report_key(amikbd_dev, scancode, 1);
 			input_report_key(amikbd_dev, scancode, 0);
 		} else {
@@ -177,7 +152,7 @@ static irqreturn_t amikbd_interrupt(int irq, void *dummy)
 		}
 
 		input_sync(amikbd_dev);
-	} else				/* scancodes >= 0x78 are error codes */
+	} else				
 		printk(amikbd_messages[scancode - 0x78]);
 
 	return IRQ_HANDLED;
@@ -228,7 +203,7 @@ static int __init amikbd_init(void)
 		}
 		memcpy(key_maps[i], temp_map, sizeof(temp_map));
 	}
-	ciaa.cra &= ~0x41;	 /* serial data in, turn off TA */
+	ciaa.cra &= ~0x41;	 
 	if (request_irq(IRQ_AMIGA_CIAA_SP, amikbd_interrupt, 0, "amikbd",
 			amikbd_interrupt)) {
 		err = -EBUSY;

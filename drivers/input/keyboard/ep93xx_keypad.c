@@ -1,24 +1,4 @@
-/*
- * Driver for the Cirrus EP93xx matrix keypad controller.
- *
- * Copyright (c) 2008 H Hartley Sweeten <hsweeten@visionengravers.com>
- *
- * Based on the pxa27x matrix keypad controller by Rodolfo Giometti.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * NOTE:
- *
- * The 3-key reset is triggered by pressing the 3 keys in
- * Row 0, Columns 2, 4, and 7 at the same time.  This action can
- * be disabled by setting the EP93XX_KEYPAD_DISABLE_3_KEY flag.
- *
- * Normal operation for the matrix does not autorepeat the key press.
- * This action can be enabled by setting the EP93XX_KEYPAD_AUTOREPEAT
- * flag.
- */
+
 
 #include <linux/platform_device.h>
 #include <linux/interrupt.h>
@@ -29,14 +9,12 @@
 #include <mach/gpio.h>
 #include <mach/ep93xx_keypad.h>
 
-/*
- * Keypad Interface Register offsets
- */
-#define KEY_INIT		0x00	/* Key Scan Initialization register */
-#define KEY_DIAG		0x04	/* Key Scan Diagnostic register */
-#define KEY_REG			0x08	/* Key Value Capture register */
 
-/* Key Scan Initialization Register bit defines */
+#define KEY_INIT		0x00	
+#define KEY_DIAG		0x04	
+#define KEY_REG			0x08	
+
+
 #define KEY_INIT_DBNC_MASK	(0x00ff0000)
 #define KEY_INIT_DBNC_SHIFT	(16)
 #define KEY_INIT_DIS3KY		(1<<15)
@@ -46,11 +24,11 @@
 #define KEY_INIT_PRSCL_MASK	(0x000003ff)
 #define KEY_INIT_PRSCL_SHIFT	(0)
 
-/* Key Scan Diagnostic Register bit defines */
+
 #define KEY_DIAG_MASK		(0x0000003f)
 #define KEY_DIAG_SHIFT		(0)
 
-/* Key Value Capture Register bit defines */
+
 #define KEY_REG_K		(1<<15)
 #define KEY_REG_INT		(1<<14)
 #define KEY_REG_2KEYS		(1<<13)
@@ -195,12 +173,7 @@ static void ep93xx_keypad_close(struct input_dev *pdev)
 
 
 #ifdef CONFIG_PM
-/*
- * NOTE: I don't know if this is correct, or will work on the ep93xx.
- *
- * None of the existing ep93xx drivers have power management support.
- * But, this is basically what the pxa27x_keypad driver does.
- */
+
 static int ep93xx_keypad_suspend(struct platform_device *pdev,
 				 pm_message_t state)
 {
@@ -244,10 +217,10 @@ static int ep93xx_keypad_resume(struct platform_device *pdev)
 
 	return 0;
 }
-#else	/* !CONFIG_PM */
+#else	
 #define ep93xx_keypad_suspend	NULL
 #define ep93xx_keypad_resume	NULL
-#endif	/* !CONFIG_PM */
+#endif	
 
 static int __devinit ep93xx_keypad_probe(struct platform_device *pdev)
 {
@@ -302,7 +275,7 @@ static int __devinit ep93xx_keypad_probe(struct platform_device *pdev)
 		goto failed_free_mem;
 	}
 
-	/* Request the needed GPIO's */
+	
 	gpio = EP93XX_GPIO_LINE_ROW0;
 	for (i = 0; i < keypad->pdata->matrix_key_rows; i++, gpio++) {
 		err = gpio_request(gpio, pdev->name);
@@ -330,7 +303,7 @@ static int __devinit ep93xx_keypad_probe(struct platform_device *pdev)
 		goto failed_free_io;
 	}
 
-	/* Create and register the input driver */
+	
 	input_dev = input_allocate_device();
 	if (!input_dev) {
 		dev_err(&pdev->dev, "failed to allocate input device\n");
@@ -367,7 +340,7 @@ static int __devinit ep93xx_keypad_probe(struct platform_device *pdev)
 
 	keypad->irq = irq;
 
-	/* Register the input device */
+	
 	err = input_register_device(input_dev);
 	if (err) {
 		dev_err(&pdev->dev, "failed to register input device\n");

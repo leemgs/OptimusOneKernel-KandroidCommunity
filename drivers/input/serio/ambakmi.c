@@ -1,14 +1,4 @@
-/*
- *  linux/drivers/input/serio/ambakmi.c
- *
- *  Copyright (C) 2000-2003 Deep Blue Solutions Ltd.
- *  Copyright (C) 2002 Russell King.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- */
+
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/serio.h>
@@ -55,7 +45,7 @@ static irqreturn_t amba_kmi_int(int irq, void *dev_id)
 static int amba_kmi_write(struct serio *io, unsigned char val)
 {
 	struct amba_kmi_port *kmi = io->port_data;
-	unsigned int timeleft = 10000; /* timeout in 100ms */
+	unsigned int timeleft = 10000; 
 
 	while ((readb(KMISTAT) & KMISTAT_TXEMPTY) == 0 && --timeleft)
 		udelay(10);
@@ -180,7 +170,7 @@ static int amba_kmi_resume(struct amba_device *dev)
 {
 	struct amba_kmi_port *kmi = amba_get_drvdata(dev);
 
-	/* kick the serio layer to rescan this port */
+	
 	serio_reconnect(kmi->io);
 
 	return 0;

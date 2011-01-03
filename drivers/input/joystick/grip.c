@@ -1,30 +1,8 @@
-/*
- *  Copyright (c) 1998-2001 Vojtech Pavlik
- */
 
-/*
- * Gravis/Kensington GrIP protocol joystick and gamepad driver for Linux
- */
 
-/*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- *
- * Should you need to contact me, the author, you can do so either by
- * e-mail - mail your message to <vojtech@ucw.cz>, or by paper mail:
- * Vojtech Pavlik, Simunkova 1594, Prague 8, 182 00 Czech Republic
- */
+
+
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -46,9 +24,9 @@ MODULE_LICENSE("GPL");
 #define GRIP_MODE_DC		4
 
 #define GRIP_LENGTH_GPP		24
-#define GRIP_STROBE_GPP		200	/* 200 us */
+#define GRIP_STROBE_GPP		200	
 #define GRIP_LENGTH_XT		4
-#define GRIP_STROBE_XT		64	/* 64 us */
+#define GRIP_STROBE_XT		64	
 #define GRIP_MAX_CHUNKS_XT	10
 #define GRIP_MAX_BITS_XT	30
 
@@ -78,9 +56,7 @@ static int *grip_btn[] = { NULL, grip_btn_gpp, grip_btn_bd, grip_btn_xt, grip_bt
 static char grip_anx[] = { 0, 0, 3, 5, 5 };
 static char grip_cen[] = { 0, 0, 2, 2, 4 };
 
-/*
- * grip_gpp_read_packet() reads a Gravis GamePad Pro packet.
- */
+
 
 static int grip_gpp_read_packet(struct gameport *gameport, int shift, unsigned int *data)
 {
@@ -118,9 +94,7 @@ static int grip_gpp_read_packet(struct gameport *gameport, int shift, unsigned i
 	return -(i == GRIP_LENGTH_GPP);
 }
 
-/*
- * grip_xt_read_packet() reads a Gravis Xterminator packet.
- */
+
 
 static int grip_xt_read_packet(struct gameport *gameport, int shift, unsigned int *data)
 {
@@ -176,9 +150,7 @@ static int grip_xt_read_packet(struct gameport *gameport, int shift, unsigned in
 	return -(status != 0xf);
 }
 
-/*
- * grip_timer() repeatedly polls the joysticks and generates events.
- */
+
 
 static void grip_poll(struct gameport *gameport)
 {

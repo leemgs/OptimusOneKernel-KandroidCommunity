@@ -1,30 +1,8 @@
-/*
- *  Copyright (c) 1998-2001 Vojtech Pavlik
- */
 
-/*
- * FP-Gaming Assasin 3D joystick driver for Linux
- */
 
-/*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- *
- * Should you need to contact me, the author, you can do so either by
- * e-mail - mail your message to <vojtech@ucw.cz>, or by paper mail:
- * Vojtech Pavlik, Simunkova 1594, Prague 8, 182 00 Czech Republic
- */
+
+
+
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -40,14 +18,14 @@ MODULE_AUTHOR("Vojtech Pavlik <vojtech@ucw.cz>");
 MODULE_DESCRIPTION(DRIVER_DESC);
 MODULE_LICENSE("GPL");
 
-#define A3D_MAX_START		600	/* 600 us */
-#define A3D_MAX_STROBE		80	/* 80 us */
-#define A3D_MAX_LENGTH		40	/* 40*3 bits */
+#define A3D_MAX_START		600	
+#define A3D_MAX_STROBE		80	
+#define A3D_MAX_LENGTH		40	
 
-#define A3D_MODE_A3D		1	/* Assassin 3D */
-#define A3D_MODE_PAN		2	/* Panther */
-#define A3D_MODE_OEM		3	/* Panther OEM version */
-#define A3D_MODE_PXL		4	/* Panther XL */
+#define A3D_MODE_A3D		1	
+#define A3D_MODE_PAN		2	
+#define A3D_MODE_OEM		3	
+#define A3D_MODE_PXL		4	
 
 static char *a3d_names[] = { NULL, "FP-Gaming Assassin 3D", "MadCatz Panther", "OEM Panther",
 			"MadCatz Panther XL", "MadCatz Panther XL w/ rudder" };
@@ -65,9 +43,7 @@ struct a3d {
 	char phys[32];
 };
 
-/*
- * a3d_read_packet() reads an Assassin 3D packet.
- */
+
 
 static int a3d_read_packet(struct gameport *gameport, int length, char *data)
 {
@@ -98,9 +74,7 @@ static int a3d_read_packet(struct gameport *gameport, int length, char *data)
 	return i;
 }
 
-/*
- * a3d_csum() computes checksum of triplet packet
- */
+
 
 static int a3d_csum(char *data, int count)
 {
@@ -172,9 +146,7 @@ static void a3d_read(struct a3d *a3d, unsigned char *data)
 }
 
 
-/*
- * a3d_poll() reads and analyzes A3D joystick data.
- */
+
 
 static void a3d_poll(struct gameport *gameport)
 {
@@ -189,11 +161,7 @@ static void a3d_poll(struct gameport *gameport)
 		a3d_read(a3d, data);
 }
 
-/*
- * a3d_adc_cooked_read() copies the acis and button data to the
- * callers arrays. It could do the read itself, but the caller could
- * call this more than 50 times a second, which would use too much CPU.
- */
+
 
 static int a3d_adc_cooked_read(struct gameport *gameport, int *axes, int *buttons)
 {
@@ -206,10 +174,7 @@ static int a3d_adc_cooked_read(struct gameport *gameport, int *axes, int *button
 	return 0;
 }
 
-/*
- * a3d_adc_open() is the gameport open routine. It refuses to serve
- * any but cooked data.
- */
+
 
 static int a3d_adc_open(struct gameport *gameport, int mode)
 {
@@ -222,9 +187,7 @@ static int a3d_adc_open(struct gameport *gameport, int mode)
 	return 0;
 }
 
-/*
- * a3d_adc_close() is a callback from the input close routine.
- */
+
 
 static void a3d_adc_close(struct gameport *gameport)
 {
@@ -233,9 +196,7 @@ static void a3d_adc_close(struct gameport *gameport)
 	gameport_stop_polling(a3d->gameport);
 }
 
-/*
- * a3d_open() is a callback from the input open routine.
- */
+
 
 static int a3d_open(struct input_dev *dev)
 {
@@ -245,9 +206,7 @@ static int a3d_open(struct input_dev *dev)
 	return 0;
 }
 
-/*
- * a3d_close() is a callback from the input close routine.
- */
+
 
 static void a3d_close(struct input_dev *dev)
 {
@@ -256,9 +215,7 @@ static void a3d_close(struct input_dev *dev)
 	gameport_stop_polling(a3d->gameport);
 }
 
-/*
- * a3d_connect() probes for A3D joysticks.
- */
+
 
 static int a3d_connect(struct gameport *gameport, struct gameport_driver *drv)
 {

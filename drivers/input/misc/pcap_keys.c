@@ -1,15 +1,4 @@
-/*
- *  Input driver for PCAP events:
- *   * Power key
- *   * Headphone button
- *
- *  Copyright (c) 2008,2009 Ilya Petrov <ilya.muromec@gmail.com>
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/init.h>
@@ -23,7 +12,7 @@ struct pcap_keys {
 	struct input_dev *input;
 };
 
-/* PCAP2 interrupts us on keypress */
+
 static irqreturn_t pcap_keys_handler(int irq, void *_pcap_keys)
 {
 	struct pcap_keys *pcap_keys = _pcap_keys;

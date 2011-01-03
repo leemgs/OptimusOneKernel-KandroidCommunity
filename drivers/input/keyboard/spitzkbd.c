@@ -1,15 +1,4 @@
-/*
- *  Keyboard driver for Sharp Spitz, Borzoi and Akita (SL-Cxx00 series)
- *
- *  Copyright (c) 2005 Richard Purdie
- *
- *  Based on corgikbd.c
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/delay.h>
 #include <linux/platform_device.h>
@@ -29,8 +18,8 @@
 #define SCANCODE(r,c)		(((r)<<4) + (c) + 1)
 #define	NR_SCANCODES		((KB_ROWS<<4) + 1)
 
-#define SCAN_INTERVAL		(50) /* ms */
-#define HINGE_SCAN_INTERVAL	(150) /* ms */
+#define SCAN_INTERVAL		(50) 
+#define HINGE_SCAN_INTERVAL	(150) 
 
 #define SPITZ_KEY_CALENDER	KEY_F1
 #define SPITZ_KEY_ADDRESS	KEY_F2
@@ -48,14 +37,14 @@
 #define SPITZ_KEY_MENU		KEY_F12
 
 static unsigned char spitzkbd_keycode[NR_SCANCODES] = {
-	0,                                                                                                                /* 0 */
-	KEY_LEFTCTRL, KEY_1, KEY_3, KEY_5, KEY_6, KEY_7, KEY_9, KEY_0, KEY_BACKSPACE, SPITZ_KEY_EXOK, SPITZ_KEY_EXCANCEL, 0, 0, 0, 0, 0,  /* 1-16 */
-	0, KEY_2, KEY_4, KEY_R, KEY_Y, KEY_8, KEY_I, KEY_O, KEY_P, SPITZ_KEY_EXJOGDOWN, SPITZ_KEY_EXJOGUP, 0, 0, 0, 0, 0, /* 17-32 */
-	KEY_TAB, KEY_Q, KEY_E, KEY_T, KEY_G, KEY_U, KEY_J, KEY_K, 0, 0, 0, 0, 0, 0, 0, 0,                                 /* 33-48 */
-	SPITZ_KEY_ADDRESS, KEY_W, KEY_S, KEY_F, KEY_V, KEY_H, KEY_M, KEY_L, 0, KEY_RIGHTSHIFT, 0, 0, 0, 0, 0, 0,         /* 49-64 */
-	SPITZ_KEY_CALENDER, KEY_A, KEY_D, KEY_C, KEY_B, KEY_N, KEY_DOT, 0, KEY_ENTER, KEY_LEFTSHIFT, 0, 0, 0, 0, 0, 0,	  /* 65-80 */
-	SPITZ_KEY_MAIL, KEY_Z, KEY_X, KEY_MINUS, KEY_SPACE, KEY_COMMA, 0, KEY_UP, 0, 0, SPITZ_KEY_FN, 0, 0, 0, 0, 0,      /* 81-96 */
-	KEY_SYSRQ, SPITZ_KEY_JAP1, SPITZ_KEY_JAP2, SPITZ_KEY_CANCEL, SPITZ_KEY_OK, SPITZ_KEY_MENU, KEY_LEFT, KEY_DOWN, KEY_RIGHT, 0, 0, 0, 0, 0, 0, 0  /* 97-112 */
+	0,                                                                                                                
+	KEY_LEFTCTRL, KEY_1, KEY_3, KEY_5, KEY_6, KEY_7, KEY_9, KEY_0, KEY_BACKSPACE, SPITZ_KEY_EXOK, SPITZ_KEY_EXCANCEL, 0, 0, 0, 0, 0,  
+	0, KEY_2, KEY_4, KEY_R, KEY_Y, KEY_8, KEY_I, KEY_O, KEY_P, SPITZ_KEY_EXJOGDOWN, SPITZ_KEY_EXJOGUP, 0, 0, 0, 0, 0, 
+	KEY_TAB, KEY_Q, KEY_E, KEY_T, KEY_G, KEY_U, KEY_J, KEY_K, 0, 0, 0, 0, 0, 0, 0, 0,                                 
+	SPITZ_KEY_ADDRESS, KEY_W, KEY_S, KEY_F, KEY_V, KEY_H, KEY_M, KEY_L, 0, KEY_RIGHTSHIFT, 0, 0, 0, 0, 0, 0,         
+	SPITZ_KEY_CALENDER, KEY_A, KEY_D, KEY_C, KEY_B, KEY_N, KEY_DOT, 0, KEY_ENTER, KEY_LEFTSHIFT, 0, 0, 0, 0, 0, 0,	  
+	SPITZ_KEY_MAIL, KEY_Z, KEY_X, KEY_MINUS, KEY_SPACE, KEY_COMMA, 0, KEY_UP, 0, 0, SPITZ_KEY_FN, 0, 0, 0, 0, 0,      
+	KEY_SYSRQ, SPITZ_KEY_JAP1, SPITZ_KEY_JAP2, SPITZ_KEY_CANCEL, SPITZ_KEY_OK, SPITZ_KEY_MENU, KEY_LEFT, KEY_DOWN, KEY_RIGHT, 0, 0, 0, 0, 0, 0, 0  
 };
 
 static int spitz_strobes[] = {
@@ -98,16 +87,10 @@ struct spitzkbd {
 #define KB_DISCHARGE_DELAY	10
 #define KB_ACTIVATE_DELAY	10
 
-/* Helper functions for reading the keyboard matrix
- * Note: We should really be using the generic gpio functions to alter
- *       GPDR but it requires a function call per GPIO bit which is
- *       excessive when we need to access 11 bits at once, multiple times.
- * These functions must be called within local_irq_save()/local_irq_restore()
- * or similar.
- */
+
 static inline void spitzkbd_discharge_all(void)
 {
-	/* STROBE All HiZ */
+	
 	GPCR0  =  SPITZ_GPIO_G0_STROBE_BIT;
 	GPDR0 &= ~SPITZ_GPIO_G0_STROBE_BIT;
 	GPCR1  =  SPITZ_GPIO_G1_STROBE_BIT;
@@ -120,7 +103,7 @@ static inline void spitzkbd_discharge_all(void)
 
 static inline void spitzkbd_activate_all(void)
 {
-	/* STROBE ALL -> High */
+	
 	GPSR0  =  SPITZ_GPIO_G0_STROBE_BIT;
 	GPDR0 |=  SPITZ_GPIO_G0_STROBE_BIT;
 	GPSR1  =  SPITZ_GPIO_G1_STROBE_BIT;
@@ -132,7 +115,7 @@ static inline void spitzkbd_activate_all(void)
 
 	udelay(KB_DISCHARGE_DELAY);
 
-	/* Clear any interrupts we may have triggered when altering the GPIO lines */
+	
 	GEDR0 = SPITZ_GPIO_G0_SENSE_BIT;
 	GEDR1 = SPITZ_GPIO_G1_SENSE_BIT;
 	GEDR2 = SPITZ_GPIO_G2_SENSE_BIT;
@@ -168,13 +151,9 @@ static inline int spitzkbd_get_row_status(int col)
 		| ((GPLR1 >> 0) & 0x10) | ((GPLR1 >> 1) & 0x60);
 }
 
-/*
- * The spitz keyboard only generates interrupts when a key is pressed.
- * When a key is pressed, we enable a timer which then scans the
- * keyboard to detect when the key is released.
- */
 
-/* Scan the hardware keyboard and push any changes up through the input layer */
+
+
 static void spitzkbd_scankeyboard(struct spitzkbd *spitzkbd_data)
 {
 	unsigned int row, col, rowd;
@@ -188,10 +167,7 @@ static void spitzkbd_scankeyboard(struct spitzkbd *spitzkbd_data)
 
 	num_pressed = 0;
 	for (col = 0; col < KB_COLS; col++) {
-		/*
-		 * Discharge the output driver capacitatance
-		 * in the keyboard matrix. (Yes it is significant..)
-		 */
+		
 
 		spitzkbd_discharge_all();
 		udelay(KB_DISCHARGE_DELAY);
@@ -226,22 +202,20 @@ static void spitzkbd_scankeyboard(struct spitzkbd *spitzkbd_data)
 
 	input_sync(spitzkbd_data->input);
 
-	/* if any keys are pressed, enable the timer */
+	
 	if (num_pressed)
 		mod_timer(&spitzkbd_data->timer, jiffies + msecs_to_jiffies(SCAN_INTERVAL));
 
 	spin_unlock_irqrestore(&spitzkbd_data->lock, flags);
 }
 
-/*
- * spitz keyboard interrupt handler.
- */
+
 static irqreturn_t spitzkbd_interrupt(int irq, void *dev_id)
 {
 	struct spitzkbd *spitzkbd_data = dev_id;
 
 	if (!timer_pending(&spitzkbd_data->timer)) {
-		/** wait chattering delay **/
+		
 		udelay(20);
 		spitzkbd_scankeyboard(spitzkbd_data);
 	}
@@ -249,9 +223,7 @@ static irqreturn_t spitzkbd_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-/*
- * spitz timer checking for released keys
- */
+
 static void spitzkbd_timer_callback(unsigned long data)
 {
 	struct spitzkbd *spitzkbd_data = (struct spitzkbd *) data;
@@ -259,10 +231,7 @@ static void spitzkbd_timer_callback(unsigned long data)
 	spitzkbd_scankeyboard(spitzkbd_data);
 }
 
-/*
- * The hinge switches generate an interrupt.
- * We debounce the switches and pass them to the input system.
- */
+
 
 static irqreturn_t spitzkbd_hinge_isr(int irq, void *dev_id)
 {
@@ -314,8 +283,7 @@ static int spitzkbd_suspend(struct platform_device *dev, pm_message_t state)
 	struct spitzkbd *spitzkbd = platform_get_drvdata(dev);
 	spitzkbd->suspended = 1;
 
-	/* Set Strobe lines as inputs - *except* strobe line 0 leave this
-	   enabled so we can detect a power button press for resume */
+	
 	for (i = 1; i < SPITZ_KEY_STROBE_NUM; i++)
 		pxa_gpio_mode(spitz_strobes[i] | GPIO_IN);
 
@@ -330,7 +298,7 @@ static int spitzkbd_resume(struct platform_device *dev)
 	for (i = 0; i < SPITZ_KEY_STROBE_NUM; i++)
 		pxa_gpio_mode(spitz_strobes[i] | GPIO_OUT | GPIO_DFLT_HIGH);
 
-	/* Upon resume, ignore the suspend key for a short while */
+	
 	spitzkbd->suspend_jiffies = jiffies;
 	spitzkbd->suspended = 0;
 
@@ -357,12 +325,12 @@ static int __devinit spitzkbd_probe(struct platform_device *dev)
 
 	spin_lock_init(&spitzkbd->lock);
 
-	/* Init Keyboard rescan timer */
+	
 	init_timer(&spitzkbd->timer);
 	spitzkbd->timer.function = spitzkbd_timer_callback;
 	spitzkbd->timer.data = (unsigned long) spitzkbd;
 
-	/* Init Hinge Timer */
+	
 	init_timer(&spitzkbd->htimer);
 	spitzkbd->htimer.function = spitzkbd_hinge_timer;
 	spitzkbd->htimer.data = (unsigned long) spitzkbd;
@@ -401,7 +369,7 @@ static int __devinit spitzkbd_probe(struct platform_device *dev)
 
 	mod_timer(&spitzkbd->htimer, jiffies + msecs_to_jiffies(HINGE_SCAN_INTERVAL));
 
-	/* Setup sense interrupts - RisingEdge Detect, sense lines as inputs */
+	
 	for (i = 0; i < SPITZ_KEY_SENSE_NUM; i++) {
 		pxa_gpio_mode(spitz_senses[i] | GPIO_IN);
 		if (request_irq(IRQ_GPIO(spitz_senses[i]), spitzkbd_interrupt,
@@ -410,7 +378,7 @@ static int __devinit spitzkbd_probe(struct platform_device *dev)
 			printk(KERN_WARNING "spitzkbd: Can't get Sense IRQ: %d!\n", i);
 	}
 
-	/* Set Strobe lines as outputs - set high */
+	
 	for (i = 0; i < SPITZ_KEY_STROBE_NUM; i++)
 		pxa_gpio_mode(spitz_strobes[i] | GPIO_OUT | GPIO_DFLT_HIGH);
 

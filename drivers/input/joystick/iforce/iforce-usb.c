@@ -1,29 +1,6 @@
- /*
- *  Copyright (c) 2000-2002 Vojtech Pavlik <vojtech@ucw.cz>
- *  Copyright (c) 2001-2002, 2007 Johann Deneux <johann.deneux@gmail.com>
- *
- *  USB/RS232 I-Force joysticks and wheels.
- */
+ 
 
-/*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- *
- * Should you need to contact me, the author, you can do so either by
- * e-mail - mail your message to <vojtech@ucw.cz>, or by paper mail:
- * Vojtech Pavlik, Simunkova 1594, Prague 8, 182 00 Czech Republic
- */
+
 
 #include "iforce.h"
 
@@ -48,7 +25,7 @@ void iforce_usb_xmit(struct iforce *iforce)
 	iforce->out->transfer_buffer_length = n + 1;
 	iforce->out->dev = iforce->usbdev;
 
-	/* Copy rest of data then */
+	
 	c = CIRC_CNT_TO_END(iforce->xmit.head, iforce->xmit.tail, XMIT_SIZE);
 	if (n < c) c=n;
 
@@ -67,9 +44,7 @@ void iforce_usb_xmit(struct iforce *iforce)
 		dev_warn(&iforce->dev->dev, "usb_submit_urb failed %d\n", n);
 	}
 
-	/* The IFORCE_XMIT_RUNNING bit is not cleared here. That's intended.
-	 * As long as the urb completion handler is not called, the transmiting
-	 * is considered to be running */
+	
 	spin_unlock_irqrestore(&iforce->xmit_lock, flags);
 }
 
@@ -80,12 +55,12 @@ static void iforce_usb_irq(struct urb *urb)
 
 	switch (urb->status) {
 	case 0:
-		/* success */
+		
 		break;
 	case -ECONNRESET:
 	case -ENOENT:
 	case -ESHUTDOWN:
-		/* this urb is terminated, clean up */
+		
 		dbg("%s - urb shutting down with status: %d",
 		    __func__, urb->status);
 		return;
@@ -186,7 +161,7 @@ fail:
 	return err;
 }
 
-/* Called by iforce_delete() */
+
 void iforce_usb_delete(struct iforce* iforce)
 {
 	usb_kill_urb(iforce->irq);
@@ -201,7 +176,7 @@ void iforce_usb_delete(struct iforce* iforce)
 static void iforce_usb_disconnect(struct usb_interface *intf)
 {
 	struct iforce *iforce = usb_get_intfdata(intf);
-	int open = 0; /* FIXME! iforce->dev.handle->open; */
+	int open = 0; 
 
 	usb_set_intfdata(intf, NULL);
 	if (iforce) {
@@ -216,18 +191,18 @@ static void iforce_usb_disconnect(struct usb_interface *intf)
 }
 
 static struct usb_device_id iforce_usb_ids [] = {
-	{ USB_DEVICE(0x044f, 0xa01c) },		/* Thrustmaster Motor Sport GT */
-	{ USB_DEVICE(0x046d, 0xc281) },		/* Logitech WingMan Force */
-	{ USB_DEVICE(0x046d, 0xc291) },		/* Logitech WingMan Formula Force */
-	{ USB_DEVICE(0x05ef, 0x020a) },		/* AVB Top Shot Pegasus */
-	{ USB_DEVICE(0x05ef, 0x8884) },		/* AVB Mag Turbo Force */
-	{ USB_DEVICE(0x05ef, 0x8888) },		/* AVB Top Shot FFB Racing Wheel */
-	{ USB_DEVICE(0x061c, 0xc0a4) },         /* ACT LABS Force RS */
-	{ USB_DEVICE(0x061c, 0xc084) },         /* ACT LABS Force RS */
-	{ USB_DEVICE(0x06f8, 0x0001) },		/* Guillemot Race Leader Force Feedback */
-	{ USB_DEVICE(0x06f8, 0x0004) },		/* Guillemot Force Feedback Racing Wheel */
-	{ USB_DEVICE(0x06f8, 0xa302) },		/* Guillemot Jet Leader 3D */
-	{ }					/* Terminating entry */
+	{ USB_DEVICE(0x044f, 0xa01c) },		
+	{ USB_DEVICE(0x046d, 0xc281) },		
+	{ USB_DEVICE(0x046d, 0xc291) },		
+	{ USB_DEVICE(0x05ef, 0x020a) },		
+	{ USB_DEVICE(0x05ef, 0x8884) },		
+	{ USB_DEVICE(0x05ef, 0x8888) },		
+	{ USB_DEVICE(0x061c, 0xc0a4) },         
+	{ USB_DEVICE(0x061c, 0xc084) },         
+	{ USB_DEVICE(0x06f8, 0x0001) },		
+	{ USB_DEVICE(0x06f8, 0x0004) },		
+	{ USB_DEVICE(0x06f8, 0xa302) },		
+	{ }					
 };
 
 MODULE_DEVICE_TABLE (usb, iforce_usb_ids);

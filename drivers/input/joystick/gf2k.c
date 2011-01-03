@@ -1,30 +1,8 @@
-/*
- *  Copyright (c) 1998-2001 Vojtech Pavlik
- */
 
-/*
- * Genius Flight 2000 joystick driver for Linux
- */
 
-/*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- *
- * Should you need to contact me, the author, you can do so either by
- * e-mail - mail your message to <vojtech@ucw.cz>, or by paper mail:
- * Vojtech Pavlik, Simunkova 1594, Prague 8, 182 00 Czech Republic
- */
+
+
+
 
 #include <linux/delay.h>
 #include <linux/kernel.h>
@@ -41,14 +19,12 @@ MODULE_AUTHOR("Vojtech Pavlik <vojtech@ucw.cz>");
 MODULE_DESCRIPTION(DRIVER_DESC);
 MODULE_LICENSE("GPL");
 
-#define GF2K_START		400	/* The time we wait for the first bit [400 us] */
-#define GF2K_STROBE		40	/* The time we wait for the first bit [40 us] */
-#define GF2K_TIMEOUT		4	/* Wait for everything to settle [4 ms] */
-#define GF2K_LENGTH		80	/* Max number of triplets in a packet */
+#define GF2K_START		400	
+#define GF2K_STROBE		40	
+#define GF2K_TIMEOUT		4	
+#define GF2K_LENGTH		80	
 
-/*
- * Genius joystick ids ...
- */
+
 
 #define GF2K_ID_G09		1
 #define GF2K_ID_F30D		2
@@ -88,9 +64,7 @@ struct gf2k {
 	char phys[32];
 };
 
-/*
- * gf2k_read_packet() reads a Genius Flight2000 packet.
- */
+
 
 static int gf2k_read_packet(struct gameport *gameport, int length, char *data)
 {
@@ -123,10 +97,7 @@ static int gf2k_read_packet(struct gameport *gameport, int length, char *data)
 	return i;
 }
 
-/*
- * gf2k_trigger_seq() initializes a Genius Flight2000 joystick
- * into digital mode.
- */
+
 
 static void gf2k_trigger_seq(struct gameport *gameport, short *seq)
 {
@@ -149,12 +120,7 @@ static void gf2k_trigger_seq(struct gameport *gameport, short *seq)
 	local_irq_restore(flags);
 }
 
-/*
- * js_sw_get_bits() composes bits from the triplet buffer into a __u64.
- * Parameter 'pos' is bit number inside packet where to start at, 'num' is number
- * of bits to be read, 'shift' is offset in the resulting __u64 to start at, bits
- * is number of bits per triplet.
- */
+
 
 #define GB(p,n,s)	gf2k_get_bits(data, p, n, s)
 
@@ -199,9 +165,7 @@ static void gf2k_read(struct gf2k *gf2k, unsigned char *data)
 	input_sync(dev);
 }
 
-/*
- * gf2k_poll() reads and analyzes Genius joystick data.
- */
+
 
 static void gf2k_poll(struct gameport *gameport)
 {
@@ -231,9 +195,7 @@ static void gf2k_close(struct input_dev *dev)
 	gameport_stop_polling(gf2k->gameport);
 }
 
-/*
- * gf2k_connect() probes for Genius id joysticks.
- */
+
 
 static int gf2k_connect(struct gameport *gameport, struct gameport_driver *drv)
 {

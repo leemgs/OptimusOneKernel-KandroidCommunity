@@ -1,19 +1,4 @@
-/*
- * Generic IXP4xx beeper driver
- *
- * Copyright (C) 2005 Tower Technologies
- *
- * based on nslu2-io.c
- *  Copyright (C) 2004 Karen Spearel
- *
- * Author: Alessandro Zummo <a.zummo@towertech.it>
- * Maintainers: http://www.nslu2-linux.org/
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/module.h>
 #include <linux/input.h>
@@ -82,10 +67,10 @@ static int ixp4xx_spkr_event(struct input_dev *dev, unsigned int type, unsigned 
 
 static irqreturn_t ixp4xx_spkr_interrupt(int irq, void *dev_id)
 {
-	/* clear interrupt */
+	
 	*IXP4XX_OSST = IXP4XX_OSST_TIMER_2_PEND;
 
-	/* flip the beeper output */
+	
 	*IXP4XX_GPIO_GPOUTR ^= (1 << (unsigned int) dev_id);
 
 	return IRQ_HANDLED;
@@ -143,7 +128,7 @@ static int __devexit ixp4xx_spkr_remove(struct platform_device *dev)
 	input_unregister_device(input_dev);
 	platform_set_drvdata(dev, NULL);
 
-	/* turn the speaker off */
+	
 	disable_irq(IRQ_IXP4XX_TIMER2);
 	ixp4xx_spkr_control(pin, 0);
 
@@ -157,7 +142,7 @@ static void ixp4xx_spkr_shutdown(struct platform_device *dev)
 	struct input_dev *input_dev = platform_get_drvdata(dev);
 	unsigned int pin = (unsigned int) input_get_drvdata(input_dev);
 
-	/* turn off the speaker */
+	
 	disable_irq(IRQ_IXP4XX_TIMER2);
 	ixp4xx_spkr_control(pin, 0);
 }

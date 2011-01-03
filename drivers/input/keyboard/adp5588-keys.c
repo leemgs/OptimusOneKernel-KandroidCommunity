@@ -1,11 +1,4 @@
-/*
- * File: drivers/input/keyboard/adp5588_keys.c
- * Description:  keypad driver for ADP5588 I2C QWERTY Keypad and IO Expander
- * Bugs: Enter bugs at http://blackfin.uclinux.org/
- *
- * Copyright (C) 2008-2009 Analog Devices Inc.
- * Licensed under the GPL-2 or later.
- */
+
 
 #include <linux/module.h>
 #include <linux/version.h>
@@ -21,7 +14,7 @@
 
 #include <linux/i2c/adp5588.h>
 
- /* Configuration Register1 */
+ 
 #define AUTO_INC	(1 << 7)
 #define GPIEM_CFG	(1 << 6)
 #define OVR_FLOW_M	(1 << 5)
@@ -31,7 +24,7 @@
 #define GPI_IEN		(1 << 1)
 #define KE_IEN		(1 << 0)
 
-/* Interrupt Status Register */
+
 #define CMP2_INT	(1 << 5)
 #define CMP1_INT	(1 << 4)
 #define OVR_FLOW_INT	(1 << 3)
@@ -39,24 +32,20 @@
 #define GPI_INT		(1 << 1)
 #define KE_INT		(1 << 0)
 
-/* Key Lock and Event Counter Register */
+
 #define K_LCK_EN	(1 << 6)
 #define LCK21		0x30
 #define KEC		0xF
 
-/* Key Event Register xy */
+
 #define KEY_EV_PRESSED		(1 << 7)
 #define KEY_EV_MASK		(0x7F)
 
-#define KP_SEL(x)		(0xFFFF >> (16 - x))	/* 2^x-1 */
+#define KP_SEL(x)		(0xFFFF >> (16 - x))	
 
 #define KEYP_MAX_EVENT		10
 
-/*
- * Early pre 4.0 Silicon required to delay readout by at least 25ms,
- * since the Event Counter Register updated 25ms after the interrupt
- * asserted.
- */
+
 #define WA_DELAYED_READOUT_REVID(rev)		((rev) < 4)
 
 struct adp5588_kpad {
@@ -91,7 +80,7 @@ static void adp5588_work(struct work_struct *work)
 
 	status = adp5588_read(client, INT_STAT);
 
-	if (status & OVR_FLOW_INT)	/* Unlikely and should never happen */
+	if (status & OVR_FLOW_INT)	
 		dev_err(&client->dev, "Event Overflow Error\n");
 
 	if (status & KE_INT) {
@@ -106,18 +95,14 @@ static void adp5588_work(struct work_struct *work)
 			input_sync(kpad->input);
 		}
 	}
-	adp5588_write(client, INT_STAT, status); /* Status is W1C */
+	adp5588_write(client, INT_STAT, status); 
 }
 
 static irqreturn_t adp5588_irq(int irq, void *handle)
 {
 	struct adp5588_kpad *kpad = handle;
 
-	/*
-	 * use keventd context to read the event fifo registers
-	 * Schedule readout at least 25ms after notification for
-	 * REVID < 4
-	 */
+	
 
 	schedule_delayed_work(&kpad->work, kpad->delay);
 
@@ -144,7 +129,7 @@ static int __devinit adp5588_setup(struct i2c_client *client)
 
 	ret |= adp5588_write(client, INT_STAT, CMP2_INT | CMP1_INT |
 					OVR_FLOW_INT | K_LCK_INT |
-					GPI_INT | KE_INT); /* Status is W1C */
+					GPI_INT | KE_INT); 
 
 	ret |= adp5588_write(client, CFG, INT_CFG | OVR_FLOW_IEN | KE_IEN);
 
@@ -231,7 +216,7 @@ static int __devinit adp5588_probe(struct i2c_client *client,
 	memcpy(kpad->keycode, pdata->keymap,
 		pdata->keymapsize * input->keycodesize);
 
-	/* setup input device */
+	
 	__set_bit(EV_KEY, input->evbit);
 
 	if (pdata->repeat)

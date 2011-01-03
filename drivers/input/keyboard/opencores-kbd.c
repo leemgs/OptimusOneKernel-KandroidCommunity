@@ -1,11 +1,4 @@
-/*
- * OpenCores Keyboard Controller Driver
- * http://www.opencores.org/project,keyboardcontroller
- *
- * Copyright 2007-2009 HV Sistemas S.L.
- *
- * Licensed under the GPL-2 or later.
- */
+
 
 #include <linux/input.h>
 #include <linux/interrupt.h>
@@ -99,10 +92,7 @@ static int __devinit opencores_kbd_probe(struct platform_device *pdev)
 	__set_bit(EV_KEY, input->evbit);
 
 	for (i = 0; i < ARRAY_SIZE(opencores_kbd->keycodes); i++) {
-		/*
-		 * OpenCores controller happens to have scancodes match
-		 * our KEY_* definitions.
-		 */
+		
 		opencores_kbd->keycodes[i] = i;
 		__set_bit(opencores_kbd->keycodes[i], input->keybit);
 	}

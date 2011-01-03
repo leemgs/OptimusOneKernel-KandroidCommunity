@@ -5,13 +5,7 @@
 #include <linux/usb/input.h>
 #include <asm/unaligned.h>
 
-/*
- * Version Information
- * v0.0.1 - Original, extremely basic version, 2.4.xx only
- * v0.0.2 - Updated, works with 2.5.62 and 2.4.20;
- *           - added pressure-threshold modules param code from
- *              Alex Perry <alex.perry@ieee.org>
- */
+
 
 #define DRIVER_VERSION "v0.0.2"
 #define DRIVER_AUTHOR "Josh Myer <josh@joshisanerd.com>"
@@ -50,12 +44,12 @@ static void kbtab_irq(struct urb *urb)
 
 	switch (urb->status) {
 	case 0:
-		/* success */
+		
 		break;
 	case -ECONNRESET:
 	case -ENOENT:
 	case -ESHUTDOWN:
-		/* this urb is terminated, clean up */
+		
 		dbg("%s - urb shutting down with status: %d", __func__, urb->status);
 		return;
 	default:
@@ -73,7 +67,7 @@ static void kbtab_irq(struct urb *urb)
 	input_report_abs(dev, ABS_X, kbtab->x);
 	input_report_abs(dev, ABS_Y, kbtab->y);
 
-	/*input_report_key(dev, BTN_TOUCH , data[0] & 0x01);*/
+	
 	input_report_key(dev, BTN_RIGHT, data[0] & 0x02);
 
 	if (-1 == kb_pressure_click) {

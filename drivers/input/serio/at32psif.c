@@ -1,12 +1,4 @@
-/*
- * Copyright (C) 2007 Atmel Corporation
- *
- * Driver for the AT32AP700X PS/2 controller (PSIF).
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published
- * by the Free Software Foundation.
- */
+
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/device.h>
@@ -19,7 +11,7 @@
 #include <linux/clk.h>
 #include <linux/platform_device.h>
 
-/* PSIF register offsets */
+
 #define PSIF_CR				0x00
 #define PSIF_RHR			0x04
 #define PSIF_THR			0x08
@@ -29,7 +21,7 @@
 #define PSIF_IMR			0x1c
 #define PSIF_PSR			0x24
 
-/* Bitfields in control register. */
+
 #define PSIF_CR_RXDIS_OFFSET		1
 #define PSIF_CR_RXDIS_SIZE		1
 #define PSIF_CR_RXEN_OFFSET		0
@@ -41,7 +33,7 @@
 #define PSIF_CR_TXEN_OFFSET		8
 #define PSIF_CR_TXEN_SIZE		1
 
-/* Bitfields in interrupt disable, enable, mask and status register. */
+
 #define PSIF_NACK_OFFSET		8
 #define PSIF_NACK_SIZE			1
 #define PSIF_OVRUN_OFFSET		5
@@ -55,19 +47,19 @@
 #define PSIF_TXRDY_OFFSET		0
 #define PSIF_TXRDY_SIZE			1
 
-/* Bitfields in prescale register. */
+
 #define PSIF_PSR_PRSCV_OFFSET		0
 #define PSIF_PSR_PRSCV_SIZE		12
 
-/* Bitfields in receive hold register. */
+
 #define PSIF_RHR_RXDATA_OFFSET		0
 #define PSIF_RHR_RXDATA_SIZE		8
 
-/* Bitfields in transmit hold register. */
+
 #define PSIF_THR_TXDATA_OFFSET		0
 #define PSIF_THR_TXDATA_SIZE		8
 
-/* Bit manipulation macros */
+
 #define PSIF_BIT(name)					\
 	(1 << PSIF_##name##_OFFSET)
 
@@ -84,7 +76,7 @@
 		    << PSIF_##name##_OFFSET))		\
 	 | PSIF_BF(name, value))
 
-/* Register access macros */
+
 #define psif_readl(port, reg)				\
 	__raw_readl((port)->regs + PSIF_##reg)
 
@@ -98,7 +90,7 @@ struct psif {
 	void __iomem		*regs;
 	unsigned int		irq;
 	unsigned int		open;
-	/* Prevent concurrent writes to PSIF THR. */
+	
 	spinlock_t		lock;
 };
 
@@ -185,7 +177,7 @@ static void psif_set_prescaler(struct psif *psif)
 	unsigned long prscv;
 	unsigned long rate = clk_get_rate(psif->pclk);
 
-	/* PRSCV = Pulse length (100 us) * PSIF module frequency. */
+	
 	prscv = 100 * (rate / 1000000UL);
 
 	if (prscv > ((1<<PSIF_PSR_PRSCV_SIZE) - 1)) {
@@ -246,7 +238,7 @@ static int __init psif_probe(struct platform_device *pdev)
 	}
 	psif->pclk = pclk;
 
-	/* Reset the PSIF to enter at a known state. */
+	
 	ret = clk_enable(pclk);
 	if (ret) {
 		dev_dbg(&pdev->dev, "could not enable pclk\n");

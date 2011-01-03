@@ -1,30 +1,8 @@
-/*
- *  Copyright (c) 1998-2001 Vojtech Pavlik
- */
 
-/*
- * PDPI Lightning 4 gamecard driver for Linux.
- */
 
-/*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- *
- * Should you need to contact me, the author, you can do so either by
- * e-mail - mail your message to <vojtech@ucw.cz>, or by paper mail:
- * Vojtech Pavlik, Simunkova 1594, Prague 8, 182 00 Czech Republic
- */
+
+
+
 
 #include <asm/io.h>
 #include <linux/delay.h>
@@ -45,7 +23,7 @@
 #define L4_CMD_SETCAL		0x93
 #define L4_ID			0x04
 #define L4_BUSY			0x01
-#define L4_TIMEOUT		80	/* 80 us */
+#define L4_TIMEOUT		80	
 
 MODULE_AUTHOR("Vojtech Pavlik <vojtech@ucw.cz>");
 MODULE_DESCRIPTION("PDPI Lightning 4 gamecard driver");
@@ -58,9 +36,7 @@ struct l4 {
 
 static struct l4 l4_ports[8];
 
-/*
- * l4_wait_ready() waits for the L4 to become ready.
- */
+
 
 static int l4_wait_ready(void)
 {
@@ -70,9 +46,7 @@ static int l4_wait_ready(void)
 	return -(t <= 0);
 }
 
-/*
- * l4_cooked_read() reads data from the Lightning 4.
- */
+
 
 static int l4_cooked_read(struct gameport *gameport, int *axes, int *buttons)
 {
@@ -117,9 +91,7 @@ static int l4_open(struct gameport *gameport, int mode)
 	return 0;
 }
 
-/*
- * l4_getcal() reads the L4 with calibration values.
- */
+
 
 static int l4_getcal(int port, int *cal)
 {
@@ -153,9 +125,7 @@ out:	outb(L4_SELECT_ANALOG, L4_PORT);
 	return result;
 }
 
-/*
- * l4_setcal() programs the L4 with calibration values.
- */
+
 
 static int l4_setcal(int port, int *cal)
 {
@@ -189,10 +159,7 @@ out:	outb(L4_SELECT_ANALOG, L4_PORT);
 	return result;
 }
 
-/*
- * l4_calibrate() calibrates the L4 for the attached device, so
- * that the device's resistance fits into the L4's 8-bit range.
- */
+
 
 static int l4_calibrate(struct gameport *gameport, int *axes, int *max)
 {
@@ -294,7 +261,7 @@ static int __init l4_add_card(int card_no)
 	for (i = 0; i < 4; i++) {
 		l4 = &l4_ports[card_no * 4 + i];
 
-		if (rev > 0x28)		/* on 2.9+ the setcal command works correctly */
+		if (rev > 0x28)		
 			l4_setcal(l4->port, cal);
 		gameport_register_port(l4->gameport);
 	}

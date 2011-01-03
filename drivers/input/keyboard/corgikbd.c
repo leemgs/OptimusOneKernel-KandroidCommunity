@@ -1,15 +1,4 @@
-/*
- *  Keyboard driver for Sharp Corgi models (SL-C7xx)
- *
- *  Copyright (c) 2004-2005 Richard Purdie
- *
- *  Based on xtkbd.c/locomkbd.c
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/delay.h>
 #include <linux/platform_device.h>
@@ -28,11 +17,11 @@
 #define KB_COLS				12
 #define KB_ROWMASK(r)		(1 << (r))
 #define SCANCODE(r,c)		( ((r)<<4) + (c) + 1 )
-/* zero code, 124 scancodes */
+
 #define	NR_SCANCODES		( SCANCODE(KB_ROWS-1,KB_COLS-1) +1 +1 )
 
-#define SCAN_INTERVAL		(50) /* ms */
-#define HINGE_SCAN_INTERVAL	(250) /* ms */
+#define SCAN_INTERVAL		(50) 
+#define HINGE_SCAN_INTERVAL	(250) 
 
 #define CORGI_KEY_CALENDER	KEY_F1
 #define CORGI_KEY_ADDRESS	KEY_F2
@@ -50,15 +39,15 @@
 #define CORGI_KEY_MENU		KEY_F12
 
 static unsigned char corgikbd_keycode[NR_SCANCODES] = {
-	0,                                                                                                                /* 0 */
-	0, KEY_1, KEY_3, KEY_5, KEY_6, KEY_7, KEY_9, KEY_0, KEY_BACKSPACE, 0, 0, 0, 0, 0, 0, 0, 	                      /* 1-16 */
-	0, KEY_2, KEY_4, KEY_R, KEY_Y, KEY_8, KEY_I, KEY_O, KEY_P, 0, 0, 0, 0, 0, 0, 0,                                   /* 17-32 */
-	KEY_TAB, KEY_Q, KEY_E, KEY_T, KEY_G, KEY_U, KEY_J, KEY_K, 0, 0, 0, 0, 0, 0, 0, 0,                                 /* 33-48 */
-	CORGI_KEY_CALENDER, KEY_W, KEY_S, KEY_F, KEY_V, KEY_H, KEY_M, KEY_L, 0, KEY_RIGHTSHIFT, 0, 0, 0, 0, 0, 0,         /* 49-64 */
-	CORGI_KEY_ADDRESS, KEY_A, KEY_D, KEY_C, KEY_B, KEY_N, KEY_DOT, 0, KEY_ENTER, 0, KEY_LEFTSHIFT, 0, 0, 0, 0, 0, 	  /* 65-80 */
-	CORGI_KEY_MAIL, KEY_Z, KEY_X, KEY_MINUS, KEY_SPACE, KEY_COMMA, 0, KEY_UP, 0, 0, 0, CORGI_KEY_FN, 0, 0, 0, 0,            /* 81-96 */
-	KEY_SYSRQ, CORGI_KEY_JAP1, CORGI_KEY_JAP2, CORGI_KEY_CANCEL, CORGI_KEY_OK, CORGI_KEY_MENU, KEY_LEFT, KEY_DOWN, KEY_RIGHT, 0, 0, 0, 0, 0, 0, 0,  /* 97-112 */
-	CORGI_KEY_OFF, CORGI_KEY_EXOK, CORGI_KEY_EXCANCEL, CORGI_KEY_EXJOGDOWN, CORGI_KEY_EXJOGUP, 0, 0, 0, 0, 0, 0, 0,   /* 113-124 */
+	0,                                                                                                                
+	0, KEY_1, KEY_3, KEY_5, KEY_6, KEY_7, KEY_9, KEY_0, KEY_BACKSPACE, 0, 0, 0, 0, 0, 0, 0, 	                      
+	0, KEY_2, KEY_4, KEY_R, KEY_Y, KEY_8, KEY_I, KEY_O, KEY_P, 0, 0, 0, 0, 0, 0, 0,                                   
+	KEY_TAB, KEY_Q, KEY_E, KEY_T, KEY_G, KEY_U, KEY_J, KEY_K, 0, 0, 0, 0, 0, 0, 0, 0,                                 
+	CORGI_KEY_CALENDER, KEY_W, KEY_S, KEY_F, KEY_V, KEY_H, KEY_M, KEY_L, 0, KEY_RIGHTSHIFT, 0, 0, 0, 0, 0, 0,         
+	CORGI_KEY_ADDRESS, KEY_A, KEY_D, KEY_C, KEY_B, KEY_N, KEY_DOT, 0, KEY_ENTER, 0, KEY_LEFTSHIFT, 0, 0, 0, 0, 0, 	  
+	CORGI_KEY_MAIL, KEY_Z, KEY_X, KEY_MINUS, KEY_SPACE, KEY_COMMA, 0, KEY_UP, 0, 0, 0, CORGI_KEY_FN, 0, 0, 0, 0,            
+	KEY_SYSRQ, CORGI_KEY_JAP1, CORGI_KEY_JAP2, CORGI_KEY_CANCEL, CORGI_KEY_OK, CORGI_KEY_MENU, KEY_LEFT, KEY_DOWN, KEY_RIGHT, 0, 0, 0, 0, 0, 0, 0,  
+	CORGI_KEY_OFF, CORGI_KEY_EXOK, CORGI_KEY_EXCANCEL, CORGI_KEY_EXJOGDOWN, CORGI_KEY_EXJOGUP, 0, 0, 0, 0, 0, 0, 0,   
 };
 
 
@@ -77,57 +66,47 @@ struct corgikbd {
 #define KB_DISCHARGE_DELAY	10
 #define KB_ACTIVATE_DELAY	10
 
-/* Helper functions for reading the keyboard matrix
- * Note: We should really be using the generic gpio functions to alter
- *       GPDR but it requires a function call per GPIO bit which is
- *       excessive when we need to access 12 bits at once, multiple times.
- * These functions must be called within local_irq_save()/local_irq_restore()
- * or similar.
- */
+
 static inline void corgikbd_discharge_all(void)
 {
-	/* STROBE All HiZ */
+	
 	GPCR2  = CORGI_GPIO_ALL_STROBE_BIT;
 	GPDR2 &= ~CORGI_GPIO_ALL_STROBE_BIT;
 }
 
 static inline void corgikbd_activate_all(void)
 {
-	/* STROBE ALL -> High */
+	
 	GPSR2  = CORGI_GPIO_ALL_STROBE_BIT;
 	GPDR2 |= CORGI_GPIO_ALL_STROBE_BIT;
 
 	udelay(KB_DISCHARGE_DELAY);
 
-	/* Clear any interrupts we may have triggered when altering the GPIO lines */
+	
 	GEDR1 = CORGI_GPIO_HIGH_SENSE_BIT;
 	GEDR2 = CORGI_GPIO_LOW_SENSE_BIT;
 }
 
 static inline void corgikbd_activate_col(int col)
 {
-	/* STROBE col -> High, not col -> HiZ */
+	
 	GPSR2 = CORGI_GPIO_STROBE_BIT(col);
 	GPDR2 = (GPDR2 & ~CORGI_GPIO_ALL_STROBE_BIT) | CORGI_GPIO_STROBE_BIT(col);
 }
 
 static inline void corgikbd_reset_col(int col)
 {
-	/* STROBE col -> Low */
+	
 	GPCR2 = CORGI_GPIO_STROBE_BIT(col);
-	/* STROBE col -> out, not col -> HiZ */
+	
 	GPDR2 = (GPDR2 & ~CORGI_GPIO_ALL_STROBE_BIT) | CORGI_GPIO_STROBE_BIT(col);
 }
 
 #define GET_ROWS_STATUS(c)	(((GPLR1 & CORGI_GPIO_HIGH_SENSE_BIT) >> CORGI_GPIO_HIGH_SENSE_RSHIFT) | ((GPLR2 & CORGI_GPIO_LOW_SENSE_BIT) << CORGI_GPIO_LOW_SENSE_LSHIFT))
 
-/*
- * The corgi keyboard only generates interrupts when a key is pressed.
- * When a key is pressed, we enable a timer which then scans the
- * keyboard to detect when the key is released.
- */
 
-/* Scan the hardware keyboard and push any changes up through the input layer */
+
+
 static void corgikbd_scankeyboard(struct corgikbd *corgikbd_data)
 {
 	unsigned int row, col, rowd;
@@ -141,10 +120,7 @@ static void corgikbd_scankeyboard(struct corgikbd *corgikbd_data)
 
 	num_pressed = 0;
 	for (col = 0; col < KB_COLS; col++) {
-		/*
-		 * Discharge the output driver capacitatance
-		 * in the keyboard matrix. (Yes it is significant..)
-		 */
+		
 
 		corgikbd_discharge_all();
 		udelay(KB_DISCHARGE_DELAY);
@@ -177,22 +153,20 @@ static void corgikbd_scankeyboard(struct corgikbd *corgikbd_data)
 
 	input_sync(corgikbd_data->input);
 
-	/* if any keys are pressed, enable the timer */
+	
 	if (num_pressed)
 		mod_timer(&corgikbd_data->timer, jiffies + msecs_to_jiffies(SCAN_INTERVAL));
 
 	spin_unlock_irqrestore(&corgikbd_data->lock, flags);
 }
 
-/*
- * corgi keyboard interrupt handler.
- */
+
 static irqreturn_t corgikbd_interrupt(int irq, void *dev_id)
 {
 	struct corgikbd *corgikbd_data = dev_id;
 
 	if (!timer_pending(&corgikbd_data->timer)) {
-		/** wait chattering delay **/
+		
 		udelay(20);
 		corgikbd_scankeyboard(corgikbd_data);
 	}
@@ -200,25 +174,14 @@ static irqreturn_t corgikbd_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-/*
- * corgi timer checking for released keys
- */
+
 static void corgikbd_timer_callback(unsigned long data)
 {
 	struct corgikbd *corgikbd_data = (struct corgikbd *) data;
 	corgikbd_scankeyboard(corgikbd_data);
 }
 
-/*
- * The hinge switches generate no interrupt so they need to be
- * monitored by a timer.
- *
- * We debounce the switches and pass them to the input system.
- *
- *  gprr == 0x00 - Keyboard with Landscape Screen
- *          0x08 - No Keyboard with Portrait Screen
- *          0x0c - Keyboard and Screen Closed
- */
+
 
 #define READ_GPIO_BIT(x)    (GPLR(x) & GPIO_bit(x))
 #define HINGE_STABLE_COUNT 2
@@ -259,8 +222,7 @@ static int corgikbd_suspend(struct platform_device *dev, pm_message_t state)
 	struct corgikbd *corgikbd = platform_get_drvdata(dev);
 
 	corgikbd->suspended = 1;
-	/* strobe 0 is the power key so this can't be made an input for
-	   powersaving therefore i = 1 */
+	
 	for (i = 1; i < CORGI_KEY_STROBE_NUM; i++)
 		pxa_gpio_mode(CORGI_GPIO_KEY_STROBE(i) | GPIO_IN);
 
@@ -275,7 +237,7 @@ static int corgikbd_resume(struct platform_device *dev)
 	for (i = 1; i < CORGI_KEY_STROBE_NUM; i++)
 		pxa_gpio_mode(CORGI_GPIO_KEY_STROBE(i) | GPIO_OUT | GPIO_DFLT_HIGH);
 
-	/* Upon resume, ignore the suspend key for a short while */
+	
 	corgikbd->suspend_jiffies=jiffies;
 	corgikbd->suspended = 0;
 
@@ -302,12 +264,12 @@ static int __devinit corgikbd_probe(struct platform_device *pdev)
 	corgikbd->input = input_dev;
 	spin_lock_init(&corgikbd->lock);
 
-	/* Init Keyboard rescan timer */
+	
 	init_timer(&corgikbd->timer);
 	corgikbd->timer.function = corgikbd_timer_callback;
 	corgikbd->timer.data = (unsigned long) corgikbd;
 
-	/* Init Hinge Timer */
+	
 	init_timer(&corgikbd->htimer);
 	corgikbd->htimer.function = corgikbd_hinge_timer;
 	corgikbd->htimer.data = (unsigned long) corgikbd;
@@ -343,7 +305,7 @@ static int __devinit corgikbd_probe(struct platform_device *pdev)
 
 	mod_timer(&corgikbd->htimer, jiffies + msecs_to_jiffies(HINGE_SCAN_INTERVAL));
 
-	/* Setup sense interrupts - RisingEdge Detect, sense lines as inputs */
+	
 	for (i = 0; i < CORGI_KEY_SENSE_NUM; i++) {
 		pxa_gpio_mode(CORGI_GPIO_KEY_SENSE(i) | GPIO_IN);
 		if (request_irq(CORGI_IRQ_GPIO_KEY_SENSE(i), corgikbd_interrupt,
@@ -352,11 +314,11 @@ static int __devinit corgikbd_probe(struct platform_device *pdev)
 			printk(KERN_WARNING "corgikbd: Can't get IRQ: %d!\n", i);
 	}
 
-	/* Set Strobe lines as outputs - set high */
+	
 	for (i = 0; i < CORGI_KEY_STROBE_NUM; i++)
 		pxa_gpio_mode(CORGI_GPIO_KEY_STROBE(i) | GPIO_OUT | GPIO_DFLT_HIGH);
 
-	/* Setup the headphone jack as an input */
+	
 	pxa_gpio_mode(CORGI_GPIO_AK_INT | GPIO_IN);
 
 	return 0;

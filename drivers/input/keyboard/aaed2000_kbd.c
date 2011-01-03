@@ -1,15 +1,4 @@
-/*
- *  Keyboard driver for the AAED-2000 dev board
- *
- *  Copyright (c) 2006 Nicolas Bellido Y Ortega
- *
- *  Based on corgikbd.c
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- *
- */
+
 
 #include <linux/delay.h>
 #include <linux/platform_device.h>
@@ -29,8 +18,8 @@
 #define SCANCODE(r,c)		(((c) * KB_ROWS) + (r))
 #define NR_SCANCODES		(KB_COLS * KB_ROWS)
 
-#define SCAN_INTERVAL		(50) /* ms */
-#define KB_ACTIVATE_DELAY	(20) /* us */
+#define SCAN_INTERVAL		(50) 
+#define KB_ACTIVATE_DELAY	(20) 
 
 static unsigned char aaedkbd_keycode[NR_SCANCODES] = {
 	KEY_9, KEY_0, KEY_MINUS, KEY_EQUAL, KEY_BACKSPACE, 0, KEY_SPACE, KEY_KP6, 0, KEY_KPDOT, 0, 0,
@@ -67,7 +56,7 @@ static void aaedkbd_report_col(struct aaedkbd *aaedkbd,
 	}
 }
 
-/* Scan the hardware keyboard and push any changes up through the input layer */
+
 static void aaedkbd_poll(struct input_polled_dev *dev)
 {
 	struct aaedkbd *aaedkbd = dev->private;
@@ -156,7 +145,7 @@ static int __devexit aaedkbd_remove(struct platform_device *pdev)
 	return 0;
 }
 
-/* work with hotplug and coldplug */
+
 MODULE_ALIAS("platform:aaed2000-keyboard");
 
 static struct platform_driver aaedkbd_driver = {

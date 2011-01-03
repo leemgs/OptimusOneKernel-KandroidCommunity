@@ -1,24 +1,4 @@
-/*
- *  FM801 gameport driver for Linux
- *
- *  Copyright (c) by Takashi Iwai <tiwai@suse.de>
- *
- *
- *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation; either version 2 of the License, or
- *   (at your option) any later version.
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU General Public License
- *   along with this program; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- */
+
 
 #include <asm/io.h>
 #include <linux/delay.h>
@@ -56,7 +36,7 @@ static int fm801_gp_cooked_read(struct gameport *gameport, int *axes, int *butto
 	axes[2] = (w == 0xffff) ? -1 : ((w & 0x1fff) << 5);
 	w = inw(gameport->io + 8);
 	axes[3] = (w == 0xffff) ? -1 : ((w & 0x1fff) << 5);
-	outw(0xff, gameport->io); /* reset */
+	outw(0xff, gameport->io); 
 
         return 0;
 }
@@ -116,7 +96,7 @@ static int __devinit fm801_gp_probe(struct pci_dev *pci, const struct pci_device
 
 	pci_set_drvdata(pci, gp);
 
-	outb(0x60, port->io + 0x0d); /* enable joystick 1 and 2 */
+	outb(0x60, port->io + 0x0d); 
 	gameport_register_port(port);
 
 	return 0;

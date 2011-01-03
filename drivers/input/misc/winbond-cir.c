@@ -1,48 +1,4 @@
-/*
- *  winbond-cir.c - Driver for the Consumer IR functionality of Winbond
- *                  SuperI/O chips.
- *
- *  Currently supports the Winbond WPCD376i chip (PNP id WEC1022), but
- *  could probably support others (Winbond WEC102X, NatSemi, etc)
- *  with minor modifications.
- *
- *  Original Author: David Härdeman <david@hardeman.nu>
- *     Copyright (C) 2009 David Härdeman <david@hardeman.nu>
- *
- *  Dedicated to Matilda, my newborn daughter, without whose loving attention
- *  this driver would have been finished in half the time and with a fraction
- *  of the bugs.
- *
- *  Written using:
- *    o Winbond WPCD376I datasheet helpfully provided by Jesse Barnes at Intel
- *    o NatSemi PC87338/PC97338 datasheet (for the serial port stuff)
- *    o DSDT dumps
- *
- *  Supported features:
- *    o RC6
- *    o Wake-On-CIR functionality
- *
- *  To do:
- *    o Test NEC and RC5
- *
- *  Left as an exercise for the reader:
- *    o Learning (I have neither the hardware, nor the need)
- *    o IR Transmit (ibid)
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+
 
 #include <linux/module.h>
 #include <linux/pnp.h>
@@ -59,88 +15,86 @@
 
 #define DRVNAME "winbond-cir"
 
-/* CEIR Wake-Up Registers, relative to data->wbase                      */
-#define WBCIR_REG_WCEIR_CTL	0x03 /* CEIR Receiver Control		*/
-#define WBCIR_REG_WCEIR_STS	0x04 /* CEIR Receiver Status		*/
-#define WBCIR_REG_WCEIR_EV_EN	0x05 /* CEIR Receiver Event Enable	*/
-#define WBCIR_REG_WCEIR_CNTL	0x06 /* CEIR Receiver Counter Low	*/
-#define WBCIR_REG_WCEIR_CNTH	0x07 /* CEIR Receiver Counter High	*/
-#define WBCIR_REG_WCEIR_INDEX	0x08 /* CEIR Receiver Index		*/
-#define WBCIR_REG_WCEIR_DATA	0x09 /* CEIR Receiver Data		*/
-#define WBCIR_REG_WCEIR_CSL	0x0A /* CEIR Re. Compare Strlen		*/
-#define WBCIR_REG_WCEIR_CFG1	0x0B /* CEIR Re. Configuration 1	*/
-#define WBCIR_REG_WCEIR_CFG2	0x0C /* CEIR Re. Configuration 2	*/
 
-/* CEIR Enhanced Functionality Registers, relative to data->ebase       */
-#define WBCIR_REG_ECEIR_CTS	0x00 /* Enhanced IR Control Status	*/
-#define WBCIR_REG_ECEIR_CCTL	0x01 /* Infrared Counter Control	*/
-#define WBCIR_REG_ECEIR_CNT_LO	0x02 /* Infrared Counter LSB		*/
-#define WBCIR_REG_ECEIR_CNT_HI	0x03 /* Infrared Counter MSB		*/
-#define WBCIR_REG_ECEIR_IREM	0x04 /* Infrared Emitter Status		*/
+#define WBCIR_REG_WCEIR_CTL	0x03 
+#define WBCIR_REG_WCEIR_STS	0x04 
+#define WBCIR_REG_WCEIR_EV_EN	0x05 
+#define WBCIR_REG_WCEIR_CNTL	0x06 
+#define WBCIR_REG_WCEIR_CNTH	0x07 
+#define WBCIR_REG_WCEIR_INDEX	0x08 
+#define WBCIR_REG_WCEIR_DATA	0x09 
+#define WBCIR_REG_WCEIR_CSL	0x0A 
+#define WBCIR_REG_WCEIR_CFG1	0x0B 
+#define WBCIR_REG_WCEIR_CFG2	0x0C 
 
-/* SP3 Banked Registers, relative to data->sbase                        */
-#define WBCIR_REG_SP3_BSR	0x03 /* Bank Select, all banks		*/
-				      /* Bank 0				*/
-#define WBCIR_REG_SP3_RXDATA	0x00 /* FIFO RX data (r)		*/
-#define WBCIR_REG_SP3_TXDATA	0x00 /* FIFO TX data (w)		*/
-#define WBCIR_REG_SP3_IER	0x01 /* Interrupt Enable		*/
-#define WBCIR_REG_SP3_EIR	0x02 /* Event Identification (r)	*/
-#define WBCIR_REG_SP3_FCR	0x02 /* FIFO Control (w)		*/
-#define WBCIR_REG_SP3_MCR	0x04 /* Mode Control			*/
-#define WBCIR_REG_SP3_LSR	0x05 /* Link Status			*/
-#define WBCIR_REG_SP3_MSR	0x06 /* Modem Status			*/
-#define WBCIR_REG_SP3_ASCR	0x07 /* Aux Status and Control		*/
-				      /* Bank 2				*/
-#define WBCIR_REG_SP3_BGDL	0x00 /* Baud Divisor LSB		*/
-#define WBCIR_REG_SP3_BGDH	0x01 /* Baud Divisor MSB		*/
-#define WBCIR_REG_SP3_EXCR1	0x02 /* Extended Control 1		*/
-#define WBCIR_REG_SP3_EXCR2	0x04 /* Extended Control 2		*/
-#define WBCIR_REG_SP3_TXFLV	0x06 /* TX FIFO Level			*/
-#define WBCIR_REG_SP3_RXFLV	0x07 /* RX FIFO Level			*/
-				      /* Bank 3				*/
-#define WBCIR_REG_SP3_MRID	0x00 /* Module Identification		*/
-#define WBCIR_REG_SP3_SH_LCR	0x01 /* LCR Shadow			*/
-#define WBCIR_REG_SP3_SH_FCR	0x02 /* FCR Shadow			*/
-				      /* Bank 4				*/
-#define WBCIR_REG_SP3_IRCR1	0x02 /* Infrared Control 1		*/
-				      /* Bank 5				*/
-#define WBCIR_REG_SP3_IRCR2	0x04 /* Infrared Control 2		*/
-				      /* Bank 6				*/
-#define WBCIR_REG_SP3_IRCR3	0x00 /* Infrared Control 3		*/
-#define WBCIR_REG_SP3_SIR_PW	0x02 /* SIR Pulse Width		*/
-				      /* Bank 7				*/
-#define WBCIR_REG_SP3_IRRXDC	0x00 /* IR RX Demod Control		*/
-#define WBCIR_REG_SP3_IRTXMC	0x01 /* IR TX Mod Control		*/
-#define WBCIR_REG_SP3_RCCFG	0x02 /* CEIR Config			*/
-#define WBCIR_REG_SP3_IRCFG1	0x04 /* Infrared Config 1		*/
-#define WBCIR_REG_SP3_IRCFG4	0x07 /* Infrared Config 4		*/
 
-/*
- * Magic values follow
- */
+#define WBCIR_REG_ECEIR_CTS	0x00 
+#define WBCIR_REG_ECEIR_CCTL	0x01 
+#define WBCIR_REG_ECEIR_CNT_LO	0x02 
+#define WBCIR_REG_ECEIR_CNT_HI	0x03 
+#define WBCIR_REG_ECEIR_IREM	0x04 
 
-/* No interrupts for WBCIR_REG_SP3_IER and WBCIR_REG_SP3_EIR */
+
+#define WBCIR_REG_SP3_BSR	0x03 
+				      
+#define WBCIR_REG_SP3_RXDATA	0x00 
+#define WBCIR_REG_SP3_TXDATA	0x00 
+#define WBCIR_REG_SP3_IER	0x01 
+#define WBCIR_REG_SP3_EIR	0x02 
+#define WBCIR_REG_SP3_FCR	0x02 
+#define WBCIR_REG_SP3_MCR	0x04 
+#define WBCIR_REG_SP3_LSR	0x05 
+#define WBCIR_REG_SP3_MSR	0x06 
+#define WBCIR_REG_SP3_ASCR	0x07 
+				      
+#define WBCIR_REG_SP3_BGDL	0x00 
+#define WBCIR_REG_SP3_BGDH	0x01 
+#define WBCIR_REG_SP3_EXCR1	0x02 
+#define WBCIR_REG_SP3_EXCR2	0x04 
+#define WBCIR_REG_SP3_TXFLV	0x06 
+#define WBCIR_REG_SP3_RXFLV	0x07 
+				      
+#define WBCIR_REG_SP3_MRID	0x00 
+#define WBCIR_REG_SP3_SH_LCR	0x01 
+#define WBCIR_REG_SP3_SH_FCR	0x02 
+				      
+#define WBCIR_REG_SP3_IRCR1	0x02 
+				      
+#define WBCIR_REG_SP3_IRCR2	0x04 
+				      
+#define WBCIR_REG_SP3_IRCR3	0x00 
+#define WBCIR_REG_SP3_SIR_PW	0x02 
+				      
+#define WBCIR_REG_SP3_IRRXDC	0x00 
+#define WBCIR_REG_SP3_IRTXMC	0x01 
+#define WBCIR_REG_SP3_RCCFG	0x02 
+#define WBCIR_REG_SP3_IRCFG1	0x04 
+#define WBCIR_REG_SP3_IRCFG4	0x07 
+
+
+
+
 #define WBCIR_IRQ_NONE		0x00
-/* RX data bit for WBCIR_REG_SP3_IER and WBCIR_REG_SP3_EIR */
+
 #define WBCIR_IRQ_RX		0x01
-/* Over/Under-flow bit for WBCIR_REG_SP3_IER and WBCIR_REG_SP3_EIR */
+
 #define WBCIR_IRQ_ERR		0x04
-/* Led enable/disable bit for WBCIR_REG_ECEIR_CTS */
+
 #define WBCIR_LED_ENABLE	0x80
-/* RX data available bit for WBCIR_REG_SP3_LSR */
+
 #define WBCIR_RX_AVAIL		0x01
-/* RX disable bit for WBCIR_REG_SP3_ASCR */
+
 #define WBCIR_RX_DISABLE	0x20
-/* Extended mode enable bit for WBCIR_REG_SP3_EXCR1 */
+
 #define WBCIR_EXT_ENABLE	0x01
-/* Select compare register in WBCIR_REG_WCEIR_INDEX (bits 5 & 6) */
+
 #define WBCIR_REGSEL_COMPARE	0x10
-/* Select mask register in WBCIR_REG_WCEIR_INDEX (bits 5 & 6) */
+
 #define WBCIR_REGSEL_MASK	0x20
-/* Starting address of selected register in WBCIR_REG_WCEIR_INDEX */
+
 #define WBCIR_REG_ADDR0		0x00
 
-/* Valid banks for the SP3 UART */
+
 enum wbcir_bank {
 	WBCIR_BANK_0          = 0x00,
 	WBCIR_BANK_1          = 0x80,
@@ -152,22 +106,22 @@ enum wbcir_bank {
 	WBCIR_BANK_7          = 0xF4,
 };
 
-/* Supported IR Protocols */
+
 enum wbcir_protocol {
 	IR_PROTOCOL_RC5          = 0x0,
 	IR_PROTOCOL_NEC          = 0x1,
 	IR_PROTOCOL_RC6          = 0x2,
 };
 
-/* Misc */
+
 #define WBCIR_NAME	"Winbond CIR"
-#define WBCIR_ID_FAMILY          0xF1 /* Family ID for the WPCD376I	*/
-#define	WBCIR_ID_CHIP            0x04 /* Chip ID for the WPCD376I	*/
-#define IR_KEYPRESS_TIMEOUT       250 /* FIXME: should be per-protocol? */
-#define INVALID_SCANCODE   0x7FFFFFFF /* Invalid with all protos	*/
-#define WAKEUP_IOMEM_LEN         0x10 /* Wake-Up I/O Reg Len		*/
-#define EHFUNC_IOMEM_LEN         0x10 /* Enhanced Func I/O Reg Len	*/
-#define SP_IOMEM_LEN             0x08 /* Serial Port 3 (IR) Reg Len	*/
+#define WBCIR_ID_FAMILY          0xF1 
+#define	WBCIR_ID_CHIP            0x04 
+#define IR_KEYPRESS_TIMEOUT       250 
+#define INVALID_SCANCODE   0x7FFFFFFF 
+#define WAKEUP_IOMEM_LEN         0x10 
+#define EHFUNC_IOMEM_LEN         0x10 
+#define SP_IOMEM_LEN             0x08 
 #define WBCIR_MAX_IDLE_BYTES       10
 
 static DEFINE_SPINLOCK(wbcir_lock);
@@ -201,7 +155,7 @@ static struct wbcir_key rc6_def_keymap[] = {
 	{ 0x800F0412, KEY_CHANNELUP		},
 	{ 0x800F0413, KEY_CHANNELDOWN		},
 	{ 0x800F040E, KEY_MUTE			},
-	{ 0x800F040D, KEY_VENDOR		}, /* Vista Logo Key */
+	{ 0x800F040D, KEY_VENDOR		}, 
 	{ 0x800F041E, KEY_UP			},
 	{ 0x800F041F, KEY_DOWN			},
 	{ 0x800F0420, KEY_LEFT			},
@@ -236,12 +190,12 @@ static struct wbcir_key rc6_def_keymap[] = {
 	{ 0x800F0417, KEY_RECORD		},
 };
 
-/* Registers and other state is protected by wbcir_lock */
+
 struct wbcir_data {
-	unsigned long wbase;        /* Wake-Up Baseaddr		*/
-	unsigned long ebase;        /* Enhanced Func. Baseaddr	*/
-	unsigned long sbase;        /* Serial Port Baseaddr	*/
-	unsigned int  irq;          /* Serial Port IRQ		*/
+	unsigned long wbase;        
+	unsigned long ebase;        
+	unsigned long sbase;        
+	unsigned int  irq;          
 
 	struct input_dev *input_dev;
 	struct timer_list timer_keyup;
@@ -256,14 +210,14 @@ struct wbcir_data {
 	unsigned long keyup_jiffies;
 	unsigned int idle_count;
 
-	/* RX irdata and parsing state */
+	
 	unsigned long irdata[30];
 	unsigned int irdata_count;
 	unsigned int irdata_idle;
 	unsigned int irdata_off;
 	unsigned int irdata_error;
 
-	/* Protected by keytable_lock */
+	
 	struct list_head keytable;
 };
 
@@ -272,7 +226,7 @@ module_param(protocol, uint, 0444);
 MODULE_PARM_DESC(protocol, "IR protocol to use "
 		 "(0 = RC5, 1 = NEC, 2 = RC6A, default)");
 
-static int invert; /* default = 0 */
+static int invert; 
 module_param(invert, bool, 0444);
 MODULE_PARM_DESC(invert, "Invert the signal from the IR receiver");
 
@@ -287,13 +241,9 @@ MODULE_PARM_DESC(wake_rc6mode, "RC6 mode for the power-on command "
 
 
 
-/*****************************************************************************
- *
- * UTILITY FUNCTIONS
- *
- *****************************************************************************/
 
-/* Caller needs to hold wbcir_lock */
+
+
 static void
 wbcir_set_bits(unsigned long addr, u8 bits, u8 mask)
 {
@@ -304,7 +254,7 @@ wbcir_set_bits(unsigned long addr, u8 bits, u8 mask)
 	outb(val, addr);
 }
 
-/* Selects the register bank for the serial port */
+
 static inline void
 wbcir_select_bank(struct wbcir_data *data, enum wbcir_bank bank)
 {
@@ -337,7 +287,7 @@ wbcir_led_brightness_set(struct led_classdev *led_cdev,
 		       WBCIR_LED_ENABLE);
 }
 
-/* Manchester encodes bits to RC6 message cells (see wbcir_parse_rc6) */
+
 static u8
 wbcir_to_rc6cells(u8 val)
 {
@@ -358,11 +308,7 @@ wbcir_to_rc6cells(u8 val)
 
 
 
-/*****************************************************************************
- *
- * INPUT FUNCTIONS
- *
- *****************************************************************************/
+
 
 static unsigned int
 wbcir_do_getkeycode(struct wbcir_data *data, u32 scancode)
@@ -448,26 +394,14 @@ wbcir_setkeycode(struct input_dev *dev, int sscancode, int keycode)
 	return 0;
 }
 
-/*
- * Timer function to report keyup event some time after keydown is
- * reported by the ISR.
- */
+
 static void
 wbcir_keyup(unsigned long cookie)
 {
 	struct wbcir_data *data = (struct wbcir_data *)cookie;
 	unsigned long flags;
 
-	/*
-	 * data->keyup_jiffies is used to prevent a race condition if a
-	 * hardware interrupt occurs at this point and the keyup timer
-	 * event is moved further into the future as a result.
-	 *
-	 * The timer will then be reactivated and this function called
-	 * again in the future. We need to exit gracefully in that case
-	 * to allow the input subsystem to do its auto-repeat magic or
-	 * a keyup event might follow immediately after the keydown.
-	 */
+	
 
 	spin_lock_irqsave(&wbcir_lock, flags);
 
@@ -486,29 +420,29 @@ wbcir_keydown(struct wbcir_data *data, u32 scancode, u8 toggle)
 {
 	unsigned int keycode;
 
-	/* Repeat? */
+	
 	if (data->last_scancode == scancode &&
 	    data->last_toggle == toggle &&
 	    data->keypressed)
 		goto set_timer;
 	data->last_scancode = scancode;
 
-	/* Do we need to release an old keypress? */
+	
 	if (data->keypressed) {
 		input_report_key(data->input_dev, data->last_keycode, 0);
 		input_sync(data->input_dev);
 		data->keypressed = 0;
 	}
 
-	/* Report scancode */
+	
 	input_event(data->input_dev, EV_MSC, MSC_SCAN, (int)scancode);
 
-	/* Do we know this scancode? */
+	
 	keycode = wbcir_do_getkeycode(data, scancode);
 	if (keycode == KEY_RESERVED)
 		goto set_timer;
 
-	/* Register a keypress */
+	
 	input_report_key(data->input_dev, keycode, 1);
 	data->keypressed = 1;
 	data->last_keycode = keycode;
@@ -524,13 +458,9 @@ set_timer:
 
 
 
-/*****************************************************************************
- *
- * IR PARSING FUNCTIONS
- *
- *****************************************************************************/
 
-/* Resets all irdata */
+
+
 static void
 wbcir_reset_irdata(struct wbcir_data *data)
 {
@@ -540,7 +470,7 @@ wbcir_reset_irdata(struct wbcir_data *data)
 	data->irdata_error = 0;
 }
 
-/* Adds one bit of irdata */
+
 static void
 add_irdata_bit(struct wbcir_data *data, int set)
 {
@@ -554,7 +484,7 @@ add_irdata_bit(struct wbcir_data *data, int set)
 	data->irdata_count++;
 }
 
-/* Gets count bits of irdata */
+
 static u16
 get_bits(struct wbcir_data *data, int count)
 {
@@ -576,7 +506,7 @@ get_bits(struct wbcir_data *data, int count)
 	return val;
 }
 
-/* Reads 16 cells and converts them to a byte */
+
 static u8
 wbcir_rc6cells_to_byte(struct wbcir_data *data)
 {
@@ -601,7 +531,7 @@ wbcir_rc6cells_to_byte(struct wbcir_data *data)
 	return val;
 }
 
-/* Decodes a number of bits from raw RC5 data */
+
 static u8
 wbcir_get_rc5bits(struct wbcir_data *data, unsigned int count)
 {
@@ -629,57 +559,7 @@ wbcir_get_rc5bits(struct wbcir_data *data, unsigned int count)
 static void
 wbcir_parse_rc6(struct device *dev, struct wbcir_data *data)
 {
-	/*
-	 * Normal bits are manchester coded as follows:
-	 * cell0 + cell1 = logic "0"
-	 * cell1 + cell0 = logic "1"
-	 *
-	 * The IR pulse has the following components:
-	 *
-	 * Leader		- 6 * cell1 - discarded
-	 * Gap    		- 2 * cell0 - discarded
-	 * Start bit		- Normal Coding - always "1"
-	 * Mode Bit 2 - 0	- Normal Coding
-	 * Toggle bit		- Normal Coding with double bit time,
-	 *			  e.g. cell0 + cell0 + cell1 + cell1
-	 *			  means logic "0".
-	 *
-	 * The rest depends on the mode, the following modes are known:
-	 *
-	 * MODE 0:
-	 *  Address Bit 7 - 0	- Normal Coding
-	 *  Command Bit 7 - 0	- Normal Coding
-	 *
-	 * MODE 6:
-	 *  The above Toggle Bit is used as a submode bit, 0 = A, 1 = B.
-	 *  Submode B is for pointing devices, only remotes using submode A
-	 *  are supported.
-	 *
-	 *  Customer range bit	- 0 => Customer = 7 bits, 0...127
-	 *                        1 => Customer = 15 bits, 32768...65535
-	 *  Customer Bits	- Normal Coding
-	 *
-	 *  Customer codes are allocated by Philips. The rest of the bits
-	 *  are customer dependent. The following is commonly used (and the
-	 *  only supported config):
-	 *
-	 *  Toggle Bit		- Normal Coding
-	 *  Address Bit 6 - 0	- Normal Coding
-	 *  Command Bit 7 - 0	- Normal Coding
-	 *
-	 * All modes are followed by at least 6 * cell0.
-	 *
-	 * MODE 0 msglen:
-	 *  1 * 2 (start bit) + 3 * 2 (mode) + 2 * 2 (toggle) +
-	 *  8 * 2 (address) + 8 * 2 (command) =
-	 *  44 cells
-	 *
-	 * MODE 6A msglen:
-	 *  1 * 2 (start bit) + 3 * 2 (mode) + 2 * 2 (submode) +
-	 *  1 * 2 (customer range bit) + 7/15 * 2 (customer bits) +
-	 *  1 * 2 (toggle bit) + 7 * 2 (address) + 8 * 2 (command) =
-	 *  60 - 76 cells
-	 */
+	
 	u8 mode;
 	u8 toggle;
 	u16 customer = 0x0;
@@ -687,29 +567,29 @@ wbcir_parse_rc6(struct device *dev, struct wbcir_data *data)
 	u8 command;
 	u32 scancode;
 
-	/* Leader mark */
+	
 	while (get_bits(data, 1) && !data->irdata_error)
-		/* Do nothing */;
+		;
 
-	/* Leader space */
+	
 	if (get_bits(data, 1)) {
 		dev_dbg(dev, "RC6 - Invalid leader space\n");
 		return;
 	}
 
-	/* Start bit */
+	
 	if (get_bits(data, 2) != 0x02) {
 		dev_dbg(dev, "RC6 - Invalid start bit\n");
 		return;
 	}
 
-	/* Mode */
+	
 	mode = get_bits(data, 6);
 	switch (mode) {
-	case 0x15: /* 010101 = b000 */
+	case 0x15: 
 		mode = 0;
 		break;
-	case 0x29: /* 101001 = b110 */
+	case 0x29: 
 		mode = 6;
 		break;
 	default:
@@ -717,7 +597,7 @@ wbcir_parse_rc6(struct device *dev, struct wbcir_data *data)
 		return;
 	}
 
-	/* Toggle bit / Submode bit */
+	
 	toggle = get_bits(data, 4);
 	switch (toggle) {
 	case 0x03:
@@ -731,7 +611,7 @@ wbcir_parse_rc6(struct device *dev, struct wbcir_data *data)
 		break;
 	}
 
-	/* Customer */
+	
 	if (mode == 6) {
 		if (toggle != 0) {
 			dev_dbg(dev, "RC6B - Not Supported\n");
@@ -741,28 +621,28 @@ wbcir_parse_rc6(struct device *dev, struct wbcir_data *data)
 		customer = wbcir_rc6cells_to_byte(data);
 
 		if (customer & 0x80) {
-			/* 15 bit customer value */
+			
 			customer <<= 8;
 			customer |= wbcir_rc6cells_to_byte(data);
 		}
 	}
 
-	/* Address */
+	
 	address = wbcir_rc6cells_to_byte(data);
 	if (mode == 6) {
 		toggle = address >> 7;
 		address &= 0x7F;
 	}
 
-	/* Command */
+	
 	command = wbcir_rc6cells_to_byte(data);
 
-	/* Create scancode */
+	
 	scancode =  command;
 	scancode |= address << 8;
 	scancode |= customer << 16;
 
-	/* Last sanity check */
+	
 	if (data->irdata_error) {
 		dev_dbg(dev, "RC6 - Cell error(s)\n");
 		return;
@@ -783,30 +663,19 @@ wbcir_parse_rc6(struct device *dev, struct wbcir_data *data)
 static void
 wbcir_parse_rc5(struct device *dev, struct wbcir_data *data)
 {
-	/*
-	 * Bits are manchester coded as follows:
-	 * cell1 + cell0 = logic "0"
-	 * cell0 + cell1 = logic "1"
-	 * (i.e. the reverse of RC6)
-	 *
-	 * Start bit 1		- "1" - discarded
-	 * Start bit 2		- Must be inverted to get command bit 6
-	 * Toggle bit
-	 * Address Bit 4 - 0
-	 * Command Bit 5 - 0
-	 */
+	
 	u8 toggle;
 	u8 address;
 	u8 command;
 	u32 scancode;
 
-	/* Start bit 1 */
+	
 	if (!get_bits(data, 1)) {
 		dev_dbg(dev, "RC5 - Invalid start bit\n");
 		return;
 	}
 
-	/* Start bit 2 */
+	
 	if (!wbcir_get_rc5bits(data, 1))
 		command = 0x40;
 	else
@@ -817,7 +686,7 @@ wbcir_parse_rc5(struct device *dev, struct wbcir_data *data)
 	command |= wbcir_get_rc5bits(data, 6);
 	scancode = address << 7 | command;
 
-	/* Last sanity check */
+	
 	if (data->irdata_error) {
 		dev_dbg(dev, "RC5 - Invalid message\n");
 		return;
@@ -835,30 +704,7 @@ wbcir_parse_rc5(struct device *dev, struct wbcir_data *data)
 static void
 wbcir_parse_nec(struct device *dev, struct wbcir_data *data)
 {
-	/*
-	 * Each bit represents 560 us.
-	 *
-	 * Leader		- 9 ms burst
-	 * Gap			- 4.5 ms silence
-	 * Address1 bit 0 - 7	- Address 1
-	 * Address2 bit 0 - 7	- Address 2
-	 * Command1 bit 0 - 7	- Command 1
-	 * Command2 bit 0 - 7	- Command 2
-	 *
-	 * Note the bit order!
-	 *
-	 * With the old NEC protocol, Address2 was the inverse of Address1
-	 * and Command2 was the inverse of Command1 and were used as
-	 * an error check.
-	 *
-	 * With NEC extended, Address1 is the LSB of the Address and
-	 * Address2 is the MSB, Command parsing remains unchanged.
-	 *
-	 * A repeat message is coded as:
-	 * Leader		- 9 ms burst
-	 * Gap			- 2.25 ms silence
-	 * Repeat		- 560 us active
-	 */
+	
 	u8 address1;
 	u8 address2;
 	u8 command1;
@@ -866,17 +712,17 @@ wbcir_parse_nec(struct device *dev, struct wbcir_data *data)
 	u16 address;
 	u32 scancode;
 
-	/* Leader mark */
+	
 	while (get_bits(data, 1) && !data->irdata_error)
-		/* Do nothing */;
+		;
 
-	/* Leader space */
+	
 	if (get_bits(data, 4)) {
 		dev_dbg(dev, "NEC - Invalid leader space\n");
 		return;
 	}
 
-	/* Repeat? */
+	
 	if (get_bits(data, 1)) {
 		if (!data->keypressed) {
 			dev_dbg(dev, "NEC - Stray repeat message\n");
@@ -890,7 +736,7 @@ wbcir_parse_nec(struct device *dev, struct wbcir_data *data)
 		return;
 	}
 
-	/* Remaining leader space */
+	
 	if (get_bits(data, 3)) {
 		dev_dbg(dev, "NEC - Invalid leader space\n");
 		return;
@@ -901,19 +747,19 @@ wbcir_parse_nec(struct device *dev, struct wbcir_data *data)
 	command1  = bitrev8(get_bits(data, 8));
 	command2  = bitrev8(get_bits(data, 8));
 
-	/* Sanity check */
+	
 	if (data->irdata_error) {
 		dev_dbg(dev, "NEC - Invalid message\n");
 		return;
 	}
 
-	/* Check command validity */
+	
 	if (command1 != ~command2) {
 		dev_dbg(dev, "NEC - Command bytes mismatch\n");
 		return;
 	}
 
-	/* Check for extended NEC protocol */
+	
 	address = address1;
 	if (address1 != ~address2)
 		address |= address2 << 8;
@@ -930,11 +776,7 @@ wbcir_parse_nec(struct device *dev, struct wbcir_data *data)
 
 
 
-/*****************************************************************************
- *
- * INTERRUPT FUNCTIONS
- *
- *****************************************************************************/
+
 
 static irqreturn_t
 wbcir_irq_handler(int irqno, void *cookie)
@@ -965,7 +807,7 @@ wbcir_irq_handler(int irqno, void *cookie)
 	if (!(status & WBCIR_IRQ_RX))
 		goto out;
 
-	/* Since RXHDLEV is set, at least 8 bytes are in the FIFO */
+	
 	insb(data->sbase + WBCIR_REG_SP3_RXDATA, &irdata[0], 8);
 
 	for (i = 0; i < sizeof(irdata); i++) {
@@ -982,10 +824,10 @@ wbcir_irq_handler(int irqno, void *cookie)
 	}
 
 	if (data->idle_count > WBCIR_MAX_IDLE_BYTES) {
-		/* Set RXINACTIVE... */
+		
 		outb(WBCIR_RX_DISABLE, data->sbase + WBCIR_REG_SP3_ASCR);
 
-		/* ...and drain the FIFO */
+		
 		while (inb(data->sbase + WBCIR_REG_SP3_LSR) & WBCIR_RX_AVAIL)
 			inb(data->sbase + WBCIR_REG_SP3_RXDATA);
 
@@ -1016,11 +858,7 @@ out:
 
 
 
-/*****************************************************************************
- *
- * SUSPEND/RESUME FUNCTIONS
- *
- *****************************************************************************/
+
 
 static void
 wbcir_shutdown(struct pnp_dev *device)
@@ -1049,14 +887,14 @@ wbcir_shutdown(struct pnp_dev *device)
 			break;
 		}
 
-		/* Mask = 13 bits, ex toggle */
+		
 		mask[0] = 0xFF;
 		mask[1] = 0x17;
 
-		match[0]  = (wake_sc & 0x003F);      /* 6 command bits */
-		match[0] |= (wake_sc & 0x0180) >> 1; /* 2 address bits */
-		match[1]  = (wake_sc & 0x0E00) >> 9; /* 3 address bits */
-		if (!(wake_sc & 0x0040))             /* 2nd start bit  */
+		match[0]  = (wake_sc & 0x003F);      
+		match[0] |= (wake_sc & 0x0180) >> 1; 
+		match[1]  = (wake_sc & 0x0E00) >> 9; 
+		if (!(wake_sc & 0x0040))             
 			match[1] |= 0x10;
 
 		break;
@@ -1090,22 +928,22 @@ wbcir_shutdown(struct pnp_dev *device)
 				break;
 			}
 
-			/* Command */
+			
 			match[0] = wbcir_to_rc6cells(wake_sc >>  0);
 			mask[0]  = 0xFF;
 			match[1] = wbcir_to_rc6cells(wake_sc >>  4);
 			mask[1]  = 0xFF;
 
-			/* Address */
+			
 			match[2] = wbcir_to_rc6cells(wake_sc >>  8);
 			mask[2]  = 0xFF;
 			match[3] = wbcir_to_rc6cells(wake_sc >> 12);
 			mask[3]  = 0xFF;
 
-			/* Header */
-			match[4] = 0x50; /* mode1 = mode0 = 0, ignore toggle */
+			
+			match[4] = 0x50; 
 			mask[4]  = 0xF0;
-			match[5] = 0x09; /* start bit = 1, mode2 = 0 */
+			match[5] = 0x09; 
 			mask[5]  = 0x0F;
 
 			rc6_csl = 44;
@@ -1113,26 +951,26 @@ wbcir_shutdown(struct pnp_dev *device)
 		} else if (wake_rc6mode == 6) {
 			i = 0;
 
-			/* Command */
+			
 			match[i]  = wbcir_to_rc6cells(wake_sc >>  0);
 			mask[i++] = 0xFF;
 			match[i]  = wbcir_to_rc6cells(wake_sc >>  4);
 			mask[i++] = 0xFF;
 
-			/* Address + Toggle */
+			
 			match[i]  = wbcir_to_rc6cells(wake_sc >>  8);
 			mask[i++] = 0xFF;
 			match[i]  = wbcir_to_rc6cells(wake_sc >> 12);
 			mask[i++] = 0x3F;
 
-			/* Customer bits 7 - 0 */
+			
 			match[i]  = wbcir_to_rc6cells(wake_sc >> 16);
 			mask[i++] = 0xFF;
 			match[i]  = wbcir_to_rc6cells(wake_sc >> 20);
 			mask[i++] = 0xFF;
 
 			if (wake_sc & 0x80000000) {
-				/* Customer range bit and bits 15 - 8 */
+				
 				match[i]  = wbcir_to_rc6cells(wake_sc >> 24);
 				mask[i++] = 0xFF;
 				match[i]  = wbcir_to_rc6cells(wake_sc >> 28);
@@ -1146,10 +984,10 @@ wbcir_shutdown(struct pnp_dev *device)
 				break;
 			}
 
-			/* Header */
-			match[i]  = 0x93; /* mode1 = mode0 = 1, submode = 0 */
+			
+			match[i]  = 0x93; 
 			mask[i++] = 0xFF;
-			match[i]  = 0x0A; /* start bit = 1, mode2 = 1 */
+			match[i]  = 0x0A; 
 			mask[i++] = 0x0F;
 
 		} else {
@@ -1166,7 +1004,7 @@ wbcir_shutdown(struct pnp_dev *device)
 
 finish:
 	if (do_wake) {
-		/* Set compare and compare mask */
+		
 		wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_INDEX,
 			       WBCIR_REGSEL_COMPARE | WBCIR_REG_ADDR0,
 			       0x3F);
@@ -1176,27 +1014,27 @@ finish:
 			       0x3F);
 		outsb(data->wbase + WBCIR_REG_WCEIR_DATA, mask, 11);
 
-		/* RC6 Compare String Len */
+		
 		outb(rc6_csl, data->wbase + WBCIR_REG_WCEIR_CSL);
 
-		/* Clear status bits NEC_REP, BUFF, MSG_END, MATCH */
+		
 		wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_STS, 0x17, 0x17);
 
-		/* Clear BUFF_EN, Clear END_EN, Set MATCH_EN */
+		
 		wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_EV_EN, 0x01, 0x07);
 
-		/* Set CEIR_EN */
+		
 		wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_CTL, 0x01, 0x01);
 
 	} else {
-		/* Clear BUFF_EN, Clear END_EN, Clear MATCH_EN */
+		
 		wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_EV_EN, 0x00, 0x07);
 
-		/* Clear CEIR_EN */
+		
 		wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_CTL, 0x00, 0x01);
 	}
 
-	/* Disable interrupts */
+	
 	outb(WBCIR_IRQ_NONE, data->sbase + WBCIR_REG_SP3_IER);
 }
 
@@ -1212,13 +1050,13 @@ wbcir_resume(struct pnp_dev *device)
 {
 	struct wbcir_data *data = pnp_get_drvdata(device);
 
-	/* Clear BUFF_EN, Clear END_EN, Clear MATCH_EN */
+	
 	wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_EV_EN, 0x00, 0x07);
 
-	/* Clear CEIR_EN */
+	
 	wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_CTL, 0x00, 0x01);
 
-	/* Enable interrupts */
+	
 	wbcir_reset_irdata(data);
 	outb(WBCIR_IRQ_RX | WBCIR_IRQ_ERR, data->sbase + WBCIR_REG_SP3_IER);
 
@@ -1227,42 +1065,35 @@ wbcir_resume(struct pnp_dev *device)
 
 
 
-/*****************************************************************************
- *
- * SETUP/INIT FUNCTIONS
- *
- *****************************************************************************/
+
 
 static void
 wbcir_cfg_ceir(struct wbcir_data *data)
 {
 	u8 tmp;
 
-	/* Set PROT_SEL, RX_INV, Clear CEIR_EN (needed for the led) */
+	
 	tmp = protocol << 4;
 	if (invert)
 		tmp |= 0x08;
 	outb(tmp, data->wbase + WBCIR_REG_WCEIR_CTL);
 
-	/* Clear status bits NEC_REP, BUFF, MSG_END, MATCH */
+	
 	wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_STS, 0x17, 0x17);
 
-	/* Clear BUFF_EN, Clear END_EN, Clear MATCH_EN */
+	
 	wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_EV_EN, 0x00, 0x07);
 
-	/* Set RC5 cell time to correspond to 36 kHz */
+	
 	wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_CFG1, 0x4A, 0x7F);
 
-	/* Set IRTX_INV */
+	
 	if (invert)
 		outb(0x04, data->ebase + WBCIR_REG_ECEIR_CCTL);
 	else
 		outb(0x00, data->ebase + WBCIR_REG_ECEIR_CCTL);
 
-	/*
-	 * Clear IR LED, set SP3 clock to 24Mhz
-	 * set SP3_IRRX_SW to binary 01, helpfully not documented
-	 */
+	
 	outb(0x10, data->ebase + WBCIR_REG_ECEIR_CTS);
 }
 
@@ -1379,7 +1210,7 @@ wbcir_probe(struct pnp_dev *device, const struct pnp_device_id *dev_id)
 	INIT_LIST_HEAD(&data->keytable);
 	setup_timer(&data->timer_keyup, wbcir_keyup, (unsigned long)data);
 
-	/* Load default keymaps */
+	
 	if (protocol == IR_PROTOCOL_RC6) {
 		int i;
 		for (i = 0; i < ARRAY_SIZE(rc6_def_keymap); i++) {
@@ -1395,29 +1226,20 @@ wbcir_probe(struct pnp_dev *device, const struct pnp_device_id *dev_id)
 
 	wbcir_cfg_ceir(data);
 
-	/* Disable interrupts */
+	
 	wbcir_select_bank(data, WBCIR_BANK_0);
 	outb(WBCIR_IRQ_NONE, data->sbase + WBCIR_REG_SP3_IER);
 
-	/* Enable extended mode */
+	
 	wbcir_select_bank(data, WBCIR_BANK_2);
 	outb(WBCIR_EXT_ENABLE, data->sbase + WBCIR_REG_SP3_EXCR1);
 
-	/*
-	 * Configure baud generator, IR data will be sampled at
-	 * a bitrate of: (24Mhz * prescaler) / (divisor * 16).
-	 *
-	 * The ECIR registers include a flag to change the
-	 * 24Mhz clock freq to 48Mhz.
-	 *
-	 * It's not documented in the specs, but fifo levels
-	 * other than 16 seems to be unsupported.
-	 */
+	
 
-	/* prescaler 1.0, tx/rx fifo lvl 16 */
+	
 	outb(0x30, data->sbase + WBCIR_REG_SP3_EXCR2);
 
-	/* Set baud divisor to generate one byte per bit/cell */
+	
 	switch (protocol) {
 	case IR_PROTOCOL_RC5:
 		outb(0xA7, data->sbase + WBCIR_REG_SP3_BGDL);
@@ -1431,47 +1253,47 @@ wbcir_probe(struct pnp_dev *device, const struct pnp_device_id *dev_id)
 	}
 	outb(0x00, data->sbase + WBCIR_REG_SP3_BGDH);
 
-	/* Set CEIR mode */
+	
 	wbcir_select_bank(data, WBCIR_BANK_0);
 	outb(0xC0, data->sbase + WBCIR_REG_SP3_MCR);
-	inb(data->sbase + WBCIR_REG_SP3_LSR); /* Clear LSR */
-	inb(data->sbase + WBCIR_REG_SP3_MSR); /* Clear MSR */
+	inb(data->sbase + WBCIR_REG_SP3_LSR); 
+	inb(data->sbase + WBCIR_REG_SP3_MSR); 
 
-	/* Disable RX demod, run-length encoding/decoding, set freq span */
+	
 	wbcir_select_bank(data, WBCIR_BANK_7);
 	outb(0x10, data->sbase + WBCIR_REG_SP3_RCCFG);
 
-	/* Disable timer */
+	
 	wbcir_select_bank(data, WBCIR_BANK_4);
 	outb(0x00, data->sbase + WBCIR_REG_SP3_IRCR1);
 
-	/* Enable MSR interrupt, Clear AUX_IRX */
+	
 	wbcir_select_bank(data, WBCIR_BANK_5);
 	outb(0x00, data->sbase + WBCIR_REG_SP3_IRCR2);
 
-	/* Disable CRC */
+	
 	wbcir_select_bank(data, WBCIR_BANK_6);
 	outb(0x20, data->sbase + WBCIR_REG_SP3_IRCR3);
 
-	/* Set RX/TX (de)modulation freq, not really used */
+	
 	wbcir_select_bank(data, WBCIR_BANK_7);
 	outb(0xF2, data->sbase + WBCIR_REG_SP3_IRRXDC);
 	outb(0x69, data->sbase + WBCIR_REG_SP3_IRTXMC);
 
-	/* Set invert and pin direction */
+	
 	if (invert)
 		outb(0x10, data->sbase + WBCIR_REG_SP3_IRCFG4);
 	else
 		outb(0x00, data->sbase + WBCIR_REG_SP3_IRCFG4);
 
-	/* Set FIFO thresholds (RX = 8, TX = 3), reset RX/TX */
+	
 	wbcir_select_bank(data, WBCIR_BANK_0);
 	outb(0x97, data->sbase + WBCIR_REG_SP3_FCR);
 
-	/* Clear AUX status bits */
+	
 	outb(0xE0, data->sbase + WBCIR_REG_SP3_ASCR);
 
-	/* Enable interrupts */
+	
 	outb(WBCIR_IRQ_RX | WBCIR_IRQ_ERR, data->sbase + WBCIR_REG_SP3_IER);
 
 	return 0;
@@ -1487,7 +1309,7 @@ exit_unregister_keys:
 		}
 	}
 	input_unregister_device(data->input_dev);
-	/* Can't call input_free_device on an unregistered device */
+	
 	data->input_dev = NULL;
 exit_free_input:
 	input_free_device(data->input_dev);
@@ -1519,7 +1341,7 @@ wbcir_remove(struct pnp_dev *device)
 	struct wbcir_keyentry *key;
 	struct wbcir_keyentry *keytmp;
 
-	/* Disable interrupts */
+	
 	wbcir_select_bank(data, WBCIR_BANK_0);
 	outb(WBCIR_IRQ_NONE, data->sbase + WBCIR_REG_SP3_IER);
 
@@ -1527,23 +1349,23 @@ wbcir_remove(struct pnp_dev *device)
 
 	free_irq(data->irq, device);
 
-	/* Clear status bits NEC_REP, BUFF, MSG_END, MATCH */
+	
 	wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_STS, 0x17, 0x17);
 
-	/* Clear CEIR_EN */
+	
 	wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_CTL, 0x00, 0x01);
 
-	/* Clear BUFF_EN, END_EN, MATCH_EN */
+	
 	wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_EV_EN, 0x00, 0x07);
 
-	/* This will generate a keyup event if necessary */
+	
 	input_unregister_device(data->input_dev);
 
 	led_trigger_unregister_simple(data->rxtrigger);
 	led_trigger_unregister_simple(data->txtrigger);
 	led_classdev_unregister(&data->led);
 
-	/* This is ok since &data->led isn't actually used */
+	
 	wbcir_led_brightness_set(&data->led, LED_OFF);
 
 	release_region(data->wbase, WAKEUP_IOMEM_LEN);
@@ -1604,7 +1426,7 @@ wbcir_exit(void)
 	pnp_unregister_driver(&wbcir_driver);
 }
 
-MODULE_AUTHOR("David Härdeman <david@hardeman.nu>");
+MODULE_AUTHOR("David Hï¿½rdeman <david@hardeman.nu>");
 MODULE_DESCRIPTION("Winbond SuperI/O Consumer IR Driver");
 MODULE_LICENSE("GPL");
 

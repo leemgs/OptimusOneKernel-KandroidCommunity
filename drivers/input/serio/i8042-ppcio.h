@@ -1,11 +1,7 @@
 #ifndef _I8042_PPCIO_H
 #define _I8042_PPCIO_H
 
-/*
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published by
- * the Free Software Foundation.
- */
+
 
 #if defined(CONFIG_WALNUT)
 
@@ -133,4 +129,4 @@ static inline void i8042_platform_exit(void)
 
 #endif
 
-#endif /* _I8042_PPCIO_H */
+#endif 

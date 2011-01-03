@@ -1,21 +1,6 @@
-/*
- * Xen para-virtual input device
- *
- * Copyright (C) 2005 Anthony Liguori <aliguori@us.ibm.com>
- * Copyright (C) 2006-2008 Red Hat, Inc., Markus Armbruster <armbru@redhat.com>
- *
- *  Based on linux/drivers/input/mouse/sermouse.c
- *
- *  This file is subject to the terms and conditions of the GNU General Public
- *  License. See the file COPYING in the main directory of this archive for
- *  more details.
- */
 
-/*
- * TODO:
- *
- * Switch to grant tables together with xen-fbfront.c.
- */
+
+
 
 #include <linux/kernel.h>
 #include <linux/errno.h>
@@ -41,10 +26,7 @@ static int xenkbd_remove(struct xenbus_device *);
 static int xenkbd_connect_backend(struct xenbus_device *, struct xenkbd_info *);
 static void xenkbd_disconnect_backend(struct xenkbd_info *);
 
-/*
- * Note: if you need to send out events, see xenfb_do_update() for how
- * to do that.
- */
+
 
 static irqreturn_t input_handler(int rq, void *dev_id)
 {
@@ -55,7 +37,7 @@ static irqreturn_t input_handler(int rq, void *dev_id)
 	prod = page->in_prod;
 	if (prod == page->in_cons)
 		return IRQ_HANDLED;
-	rmb();			/* ensure we see ring contents up to prod */
+	rmb();			
 	for (cons = page->in_cons; cons != prod; cons++) {
 		union xenkbd_in_event *event;
 		struct input_dev *dev;
@@ -95,7 +77,7 @@ static irqreturn_t input_handler(int rq, void *dev_id)
 		if (dev)
 			input_sync(dev);
 	}
-	mb();			/* ensure we got ring contents */
+	mb();			
 	page->in_cons = cons;
 	notify_remote_via_irq(info->irq);
 
@@ -123,7 +105,7 @@ static int __devinit xenkbd_probe(struct xenbus_device *dev,
 	if (!info->page)
 		goto error_nomem;
 
-	/* keyboard */
+	
 	kbd = input_allocate_device();
 	if (!kbd)
 		goto error_nomem;
@@ -146,7 +128,7 @@ static int __devinit xenkbd_probe(struct xenbus_device *dev,
 	}
 	info->kbd = kbd;
 
-	/* pointing device */
+	
 	ptr = input_allocate_device();
 	if (!ptr)
 		goto error_nomem;
@@ -293,15 +275,11 @@ InitWait:
 		break;
 
 	case XenbusStateConnected:
-		/*
-		 * Work around xenbus race condition: If backend goes
-		 * through InitWait to Connected fast enough, we can
-		 * get Connected twice here.
-		 */
+		
 		if (dev->state != XenbusStateConnected)
-			goto InitWait; /* no InitWait seen yet, fudge it */
+			goto InitWait; 
 
-		/* Set input abs params to match backend screen res */
+		
 		if (xenbus_scanf(XBT_NIL, info->xbdev->otherend,
 				 "width", "%d", &val) > 0)
 			input_set_abs_params(info->ptr, ABS_X, 0, val, 0, 0);
@@ -338,7 +316,7 @@ static int __init xenkbd_init(void)
 	if (!xen_domain())
 		return -ENODEV;
 
-	/* Nothing to do if running in dom0. */
+	
 	if (xen_initial_domain())
 		return -ENODEV;
 

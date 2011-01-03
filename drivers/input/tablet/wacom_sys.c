@@ -1,20 +1,11 @@
-/*
- * drivers/input/tablet/wacom_sys.c
- *
- *  USB Wacom Graphire and Wacom Intuos tablet support - system specific code
- */
 
-/*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- */
+
+
 
 #include "wacom.h"
 #include "wacom_wac.h"
 
-/* defines to get HID report descriptor */
+
 #define HID_DEVICET_HID		(USB_TYPE_CLASS | 0x01)
 #define HID_DEVICET_REPORT	(USB_TYPE_CLASS | 0x02)
 #define HID_USAGE_UNDEFINED		0x00
@@ -45,7 +36,7 @@ struct hid_descriptor {
 	__le16   wDescriptorLength;
 } __attribute__ ((packed));
 
-/* defines to get/set USB message */
+
 #define USB_REQ_GET_REPORT	0x01
 #define USB_REQ_SET_REPORT	0x09
 #define WAC_HID_FEATURE_REPORT	0x03
@@ -83,12 +74,12 @@ static void wacom_sys_irq(struct urb *urb)
 
 	switch (urb->status) {
 	case 0:
-		/* success */
+		
 		break;
 	case -ECONNRESET:
 	case -ENOENT:
 	case -ESHUTDOWN:
-		/* this urb is terminated, clean up */
+		
 		dbg("%s - urb shutting down with status: %d", __func__, urb->status);
 		return;
 	default:
@@ -290,19 +281,19 @@ static int wacom_parse_hid(struct usb_interface *intf, struct hid_descriptor *hi
 	if (!report)
 		return -ENOMEM;
 
-	/* retrive report descriptors */
+	
 	do {
 		result = usb_control_msg(dev, usb_rcvctrlpipe(dev, 0),
 			USB_REQ_GET_DESCRIPTOR,
 			USB_RECIP_INTERFACE | USB_DIR_IN,
 			HID_DEVICET_REPORT << 8,
-			intf->altsetting[0].desc.bInterfaceNumber, /* interface */
+			intf->altsetting[0].desc.bInterfaceNumber, 
 			report,
 			hid_desc->wDescriptorLength,
-			5000); /* 5 secs */
+			5000); 
 	} while (result < 0 && limit++ < 5);
 
-	/* No need to parse the Descriptor. It isn't an error though */
+	
 	if (result < 0)
 		goto out;
 
@@ -340,10 +331,7 @@ static int wacom_parse_hid(struct usb_interface *intf, struct hid_descriptor *hi
 						i += 4;
 					}
 				} else if (usage == WCM_DIGITIZER) {
-					/* max pressure isn't reported
-					features->pressure_max = (unsigned short)
-							(report[i+4] << 8  | report[i + 3]);
-					*/
+					
 					features->pressure_max = 255;
 					i += 4;
 				}
@@ -367,7 +355,7 @@ static int wacom_parse_hid(struct usb_interface *intf, struct hid_descriptor *hi
 				break;
 
 			case HID_USAGE_UNDEFINED:
-				if (usage == WCM_DESKTOP && finger) /* capacity */
+				if (usage == WCM_DESKTOP && finger) 
 					features->pressure_max =
 						wacom_le16_to_cpu(&report[i + 3]);
 				i += 4;
@@ -376,7 +364,7 @@ static int wacom_parse_hid(struct usb_interface *intf, struct hid_descriptor *hi
 			break;
 
 		case HID_COLLECTION:
-			/* reset UsagePage ans Finger */
+			
 			finger = usage = 0;
 			break;
 		}
@@ -463,7 +451,7 @@ static int wacom_probe(struct usb_interface *intf, const struct usb_device_id *i
 
 	endpoint = &intf->cur_altsetting->endpoint[0].desc;
 
-	/* Initialize touch_x_max and touch_y_max in case it is not defined */
+	
 	if (wacom_wac->features->type == TABLETPC) {
 		features->touch_x_max = 1023;
 		features->touch_y_max = 1023;
@@ -472,7 +460,7 @@ static int wacom_probe(struct usb_interface *intf, const struct usb_device_id *i
 		features->touch_y_max = 0;
 	}
 
-	/* TabletPC need to retrieve the physical and logical maximum from report descriptor */
+	
 	if (wacom_wac->features->type == TABLETPC) {
 		if (usb_get_extra_descriptor(interface, HID_DEVICET_HID, &hid_desc)) {
 			if (usb_get_extra_descriptor(&interface->endpoint[0],
@@ -512,10 +500,7 @@ static int wacom_probe(struct usb_interface *intf, const struct usb_device_id *i
 	if (error)
 		goto fail3;
 
-	/*
-	 * Ask the tablet to report tablet data if it is not a Tablet PC.
-	 * Note that if query fails it is not a hard failure.
-	 */
+	
 	if (wacom_wac->features->type != TABLETPC)
 		wacom_query_tablet_data(intf);
 

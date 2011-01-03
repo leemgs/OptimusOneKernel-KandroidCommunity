@@ -1,13 +1,4 @@
-/*
- * Input driver to ExplorerPS/2 device driver module.
- *
- * Copyright (c) 1999-2002 Vojtech Pavlik
- * Copyright (c) 2004      Dmitry Torokhov
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as published by
- * the Free Software Foundation.
- */
+
 
 #define MOUSEDEV_MINOR_BASE	32
 #define MOUSEDEV_MINORS		32
@@ -64,7 +55,7 @@ struct mousedev {
 	struct input_handle handle;
 	wait_queue_head_t wait;
 	struct list_head client_list;
-	spinlock_t client_lock; /* protects client_list */
+	spinlock_t client_lock; 
 	struct mutex mutex;
 	struct device dev;
 
@@ -151,7 +142,7 @@ static void mousedev_touchpad_event(struct input_dev *dev,
 	case ABS_Y:
 		fy(0) = value;
 		if (mousedev->touch && mousedev->pkt_count >= 2) {
-			/* use X size to keep the same scale */
+			
 			size = dev->absmax[ABS_X] - dev->absmin[ABS_X];
 			if (size == 0)
 				size = 256 * 2;
@@ -268,7 +259,7 @@ static void mousedev_notify_readers(struct mousedev *mousedev,
 	rcu_read_lock();
 	list_for_each_entry_rcu(client, &mousedev->client_list, node) {
 
-		/* Just acquire the lock, interrupts already disabled */
+		
 		spin_lock(&client->packet_lock);
 
 		p = &client->packets[client->head];
@@ -322,11 +313,7 @@ static void mousedev_touchpad_touch(struct mousedev *mousedev, int value)
 		if (mousedev->touch &&
 		    time_before(jiffies,
 				mousedev->touch + msecs_to_jiffies(tap_time))) {
-			/*
-			 * Toggle left button to emulate tap.
-			 * We rely on the fact that mousedev_mix always has 0
-			 * motion packet so we won't mess current position.
-			 */
+			
 			set_bit(0, &mousedev->packet.buttons);
 			set_bit(0, &mousedev_mix->packet.buttons);
 			mousedev_notify_readers(mousedev, &mousedev_mix->packet);
@@ -351,7 +338,7 @@ static void mousedev_event(struct input_handle *handle,
 	switch (type) {
 
 	case EV_ABS:
-		/* Ignore joysticks */
+		
 		if (test_bit(BTN_TRIGGER, handle->dev->keybit))
 			return;
 
@@ -381,11 +368,7 @@ static void mousedev_event(struct input_handle *handle,
 		if (code == SYN_REPORT) {
 			if (mousedev->touch) {
 				mousedev->pkt_count++;
-				/*
-				 * Input system eats duplicate events,
-				 * but we need all of them to do correct
-				 * averaging so apply present one forward
-				 */
+				
 				fx(0) = fx(1);
 				fy(0) = fy(1);
 			}
@@ -450,11 +433,7 @@ static void mousedev_close_device(struct mousedev *mousedev)
 	mutex_unlock(&mousedev->mutex);
 }
 
-/*
- * Open all available devices so they can all be multiplexed in one.
- * stream. Note that this function is called with mousedev_mix->mutex
- * held.
- */
+
 static void mixdev_open_devices(void)
 {
 	struct mousedev *mousedev;
@@ -472,11 +451,7 @@ static void mixdev_open_devices(void)
 	}
 }
 
-/*
- * Close all devices that were opened as part of multiplexed
- * device. Note that this function is called with mousedev_mix->mutex
- * held.
- */
+
 static void mixdev_close_devices(void)
 {
 	struct mousedev *mousedev;
@@ -641,16 +616,16 @@ static void mousedev_packet(struct mousedev_client *client,
 static void mousedev_generate_response(struct mousedev_client *client,
 					int command)
 {
-	client->ps2[0] = 0xfa; /* ACK */
+	client->ps2[0] = 0xfa; 
 
 	switch (command) {
 
-	case 0xeb: /* Poll */
+	case 0xeb: 
 		mousedev_packet(client, &client->ps2[1]);
-		client->bufsiz++; /* account for leading ACK */
+		client->bufsiz++; 
 		break;
 
-	case 0xf2: /* Get ID */
+	case 0xf2: 
 		switch (client->mode) {
 		case MOUSEDEV_EMUL_PS2:
 			client->ps2[1] = 0;
@@ -665,12 +640,12 @@ static void mousedev_generate_response(struct mousedev_client *client,
 		client->bufsiz = 2;
 		break;
 
-	case 0xe9: /* Get info */
+	case 0xe9: 
 		client->ps2[1] = 0x60; client->ps2[2] = 3; client->ps2[3] = 200;
 		client->bufsiz = 4;
 		break;
 
-	case 0xff: /* Reset */
+	case 0xff: 
 		client->impsseq = client->imexseq = 0;
 		client->mode = MOUSEDEV_EMUL_PS2;
 		client->ps2[1] = 0xaa; client->ps2[2] = 0x00;
@@ -766,7 +741,7 @@ static ssize_t mousedev_read(struct file *file, char __user *buffer,
 	return count;
 }
 
-/* No kernel lock - fine */
+
 static unsigned int mousedev_poll(struct file *file, poll_table *wait)
 {
 	struct mousedev_client *client = file->private_data;
@@ -800,11 +775,7 @@ static void mousedev_remove_chrdev(struct mousedev *mousedev)
 	mutex_unlock(&mousedev_table_mutex);
 }
 
-/*
- * Mark device non-existent. This disables writes, ioctls and
- * prevents new users from opening the device. Already posted
- * blocking reads will stay, however new ones will fail.
- */
+
 static void mousedev_mark_dead(struct mousedev *mousedev)
 {
 	mutex_lock(&mousedev->mutex);
@@ -812,10 +783,7 @@ static void mousedev_mark_dead(struct mousedev *mousedev)
 	mutex_unlock(&mousedev->mutex);
 }
 
-/*
- * Wake up users waiting for IO so they can disconnect from
- * dead device.
- */
+
 static void mousedev_hangup(struct mousedev *mousedev)
 {
 	struct mousedev_client *client;
@@ -836,7 +804,7 @@ static void mousedev_cleanup(struct mousedev *mousedev)
 	mousedev_hangup(mousedev);
 	mousedev_remove_chrdev(mousedev);
 
-	/* mousedev is marked dead so no one else accesses mousedev->open */
+	
 	if (mousedev->open)
 		input_close_device(handle);
 }
@@ -1002,14 +970,13 @@ static const struct input_device_id mousedev_ids[] = {
 		.evbit = { BIT_MASK(EV_KEY) | BIT_MASK(EV_REL) },
 		.keybit = { [BIT_WORD(BTN_LEFT)] = BIT_MASK(BTN_LEFT) },
 		.relbit = { BIT_MASK(REL_X) | BIT_MASK(REL_Y) },
-	},	/* A mouse like device, at least one button,
-		   two relative axes */
+	},	
 	{
 		.flags = INPUT_DEVICE_ID_MATCH_EVBIT |
 				INPUT_DEVICE_ID_MATCH_RELBIT,
 		.evbit = { BIT_MASK(EV_KEY) | BIT_MASK(EV_REL) },
 		.relbit = { BIT_MASK(REL_WHEEL) },
-	},	/* A separate scrollwheel */
+	},	
 	{
 		.flags = INPUT_DEVICE_ID_MATCH_EVBIT |
 				INPUT_DEVICE_ID_MATCH_KEYBIT |
@@ -1017,8 +984,7 @@ static const struct input_device_id mousedev_ids[] = {
 		.evbit = { BIT_MASK(EV_KEY) | BIT_MASK(EV_ABS) },
 		.keybit = { [BIT_WORD(BTN_TOUCH)] = BIT_MASK(BTN_TOUCH) },
 		.absbit = { BIT_MASK(ABS_X) | BIT_MASK(ABS_Y) },
-	},	/* A tablet like device, at least touch detection,
-		   two absolute axes */
+	},	
 	{
 		.flags = INPUT_DEVICE_ID_MATCH_EVBIT |
 				INPUT_DEVICE_ID_MATCH_KEYBIT |
@@ -1029,7 +995,7 @@ static const struct input_device_id mousedev_ids[] = {
 		.absbit = { BIT_MASK(ABS_X) | BIT_MASK(ABS_Y) |
 				BIT_MASK(ABS_PRESSURE) |
 				BIT_MASK(ABS_TOOL_WIDTH) },
-	},	/* A touchpad */
+	},	
 	{
 		.flags = INPUT_DEVICE_ID_MATCH_EVBIT |
 			INPUT_DEVICE_ID_MATCH_KEYBIT |
@@ -1037,10 +1003,9 @@ static const struct input_device_id mousedev_ids[] = {
 		.evbit = { BIT_MASK(EV_KEY) | BIT_MASK(EV_ABS) },
 		.keybit = { [BIT_WORD(BTN_LEFT)] = BIT_MASK(BTN_LEFT) },
 		.absbit = { BIT_MASK(ABS_X) | BIT_MASK(ABS_Y) },
-	},	/* Mouse-like device with absolute X and Y but ordinary
-		   clicks, like hp ILO2 High Performance mouse */
+	},	
 
-	{ },	/* Terminating entry */
+	{ },	
 };
 
 MODULE_DEVICE_TABLE(input, mousedev_ids);

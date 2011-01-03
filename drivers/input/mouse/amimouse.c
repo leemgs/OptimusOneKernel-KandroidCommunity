@@ -1,21 +1,6 @@
-/*
- *  Amiga mouse driver for Linux/m68k
- *
- *  Copyright (c) 2000-2002 Vojtech Pavlik
- *
- *  Based on the work of:
- *	Michael Rausch		James Banks
- *	Matther Dillon		David Giller
- *	Nathan Laredo		Linus Torvalds
- *	Johan Myreen		Jes Sorensen
- *	Russell King
- */
 
-/*
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published by
- * the Free Software Foundation
- */
+
+
 
 #include <linux/module.h>
 #include <linux/init.h>

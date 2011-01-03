@@ -1,32 +1,4 @@
-/*
- * File:         drivers/input/keyboard/bf54x-keys.c
- * Based on:
- * Author:       Michael Hennerich <hennerich@blackfin.uclinux.org>
- *
- * Created:
- * Description:  keypad driver for Analog Devices Blackfin BF54x Processors
- *
- *
- * Modified:
- *               Copyright 2007-2008 Analog Devices Inc.
- *
- * Bugs:         Enter bugs at http://blackfin.uclinux.org/
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, see the file COPYING, or write
- * to the Free Software Foundation, Inc.,
- * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- */
+
 
 #include <linux/module.h>
 
@@ -46,9 +18,9 @@
 #include <mach/bf54x_keys.h>
 
 #define DRV_NAME	"bf54x-keys"
-#define TIME_SCALE	100	/* 100 ns */
+#define TIME_SCALE	100	
 #define	MAX_MULT	(0xFF * TIME_SCALE)
-#define MAX_RC		8	/* Max Row/Col */
+#define MAX_RC		8	
 
 static const u16 per_rows[] = {
 	P_KEY_ROW7,
@@ -133,7 +105,7 @@ static void bfin_kpad_timer(unsigned long data)
 	struct bf54x_kpad *bf54x_kpad = platform_get_drvdata(pdev);
 
 	if (bfin_kpad_get_keypressed(bf54x_kpad)) {
-		/* Try again later */
+		
 		mod_timer(&bf54x_kpad->timer,
 			  jiffies + bf54x_kpad->keyup_test_jiffies);
 		return;
@@ -142,7 +114,7 @@ static void bfin_kpad_timer(unsigned long data)
 	input_report_key(bf54x_kpad->input, bf54x_kpad->lastkey, 0);
 	input_sync(bf54x_kpad->input);
 
-	/* Clear IRQ Status */
+	
 
 	bfin_kpad_clear_irq();
 	enable_irq(bf54x_kpad->irq);
@@ -200,7 +172,7 @@ static int __devinit bfin_kpad_probe(struct platform_device *pdev)
 
 	platform_set_drvdata(pdev, bf54x_kpad);
 
-	/* Allocate memory for keymap followed by private LUT */
+	
 	bf54x_kpad->keycode = kmalloc(pdata->keymapsize *
 					sizeof(unsigned short) * 2, GFP_KERNEL);
 	if (!bf54x_kpad->keycode) {
@@ -212,7 +184,7 @@ static int __devinit bfin_kpad_probe(struct platform_device *pdev)
 	    !pdata->coldrive_time || pdata->coldrive_time > MAX_MULT) {
 		dev_warn(&pdev->dev,
 			"invalid platform debounce/columndrive time\n");
-		bfin_write_KPAD_MSEL(0xFF0);	/* Default MSEL	*/
+		bfin_write_KPAD_MSEL(0xFF0);	
 	} else {
 		bfin_write_KPAD_MSEL(
 			((pdata->debounce_time / TIME_SCALE)
@@ -281,7 +253,7 @@ static int __devinit bfin_kpad_probe(struct platform_device *pdev)
 
 	bfin_keycodecpy(bf54x_kpad->keycode, pdata->keymap, pdata->keymapsize);
 
-	/* setup input device */
+	
 	__set_bit(EV_KEY, input->evbit);
 
 	if (pdata->repeat)
@@ -297,7 +269,7 @@ static int __devinit bfin_kpad_probe(struct platform_device *pdev)
 		goto out4;
 	}
 
-	/* Init Keypad Key Up/Release test timer */
+	
 
 	setup_timer(&bf54x_kpad->timer, bfin_kpad_timer, (unsigned long) pdev);
 

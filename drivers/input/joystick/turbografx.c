@@ -1,33 +1,8 @@
-/*
- *  Copyright (c) 1998-2001 Vojtech Pavlik
- *
- *  Based on the work of:
- *	Steffen Schwenke
- */
 
-/*
- * TurboGraFX parallel port interface driver for Linux.
- */
 
-/*
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- *
- * Should you need to contact me, the author, you can do so either by
- * e-mail - mail your message to <vojtech@ucw.cz>, or by paper mail:
- * Vojtech Pavlik, Simunkova 1594, Prague 8, 182 00 Czech Republic
- */
+
+
+
 
 #include <linux/kernel.h>
 #include <linux/parport.h>
@@ -57,7 +32,7 @@ MODULE_PARM_DESC(map2, "Describes second set of devices");
 module_param_array_named(map3, tgfx_cfg[2].args, int, &tgfx_cfg[2].nargs, 0);
 MODULE_PARM_DESC(map3, "Describes third set of devices");
 
-#define TGFX_REFRESH_TIME	HZ/100	/* 10 ms */
+#define TGFX_REFRESH_TIME	HZ/100	
 
 #define TGFX_TRIGGER		0x08
 #define TGFX_UP			0x10
@@ -83,9 +58,7 @@ static struct tgfx {
 	struct mutex sem;
 } *tgfx_base[TGFX_MAX_PORTS];
 
-/*
- * tgfx_timer() reads and analyzes TurboGraFX joystick data.
- */
+
 
 static void tgfx_timer(unsigned long private)
 {
@@ -100,7 +73,7 @@ static void tgfx_timer(unsigned long private)
 
 			parport_write_data(tgfx->pd->port, ~(1 << i));
 			data1 = parport_read_status(tgfx->pd->port) ^ 0x7f;
-			data2 = parport_read_control(tgfx->pd->port) ^ 0x04;	/* CAVEAT parport */
+			data2 = parport_read_control(tgfx->pd->port) ^ 0x04;	
 
 			input_report_abs(dev, ABS_X, !!(data1 & TGFX_RIGHT) - !!(data1 & TGFX_LEFT));
 			input_report_abs(dev, ABS_Y, !!(data1 & TGFX_DOWN ) - !!(data1 & TGFX_UP  ));
@@ -151,9 +124,7 @@ static void tgfx_close(struct input_dev *dev)
 
 
 
-/*
- * tgfx_probe() probes for tg gamepads.
- */
+
 
 static struct tgfx __init *tgfx_probe(int parport, int *n_buttons, int n_devs)
 {

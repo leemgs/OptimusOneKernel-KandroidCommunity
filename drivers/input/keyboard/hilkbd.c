@@ -1,19 +1,4 @@
-/*
- *  linux/drivers/hil/hilkbd.c
- *
- *  Copyright (C) 1998 Philip Blundell <philb@gnu.org>
- *  Copyright (C) 1999 Matthew Wilcox <willy@bofh.ai>
- *  Copyright (C) 1999-2007 Helge Deller <deller@gmx.de>
- *
- *  Very basic HP Human Interface Loop (HIL) driver.
- *  This driver handles the keyboard on HP300 (m68k) and on some
- *  HP700 (parisc) series machines.
- *
- *
- * This file is subject to the terms and conditions of the GNU General Public
- * License version 2.  See the file COPYING in the main directory of this
- * archive for more details.
- */
+
 
 #include <linux/pci_ids.h>
 #include <linux/ioport.h>
@@ -42,9 +27,9 @@ MODULE_LICENSE("GPL v2");
  #include <asm/io.h>
  #include <asm/hardware.h>
  #include <asm/parisc-device.h>
- static unsigned long hil_base;	/* HPA for the HIL device */
+ static unsigned long hil_base;	
  static unsigned int hil_irq;
- #define HILBASE		hil_base /* HPPA (parisc) port address */
+ #define HILBASE		hil_base 
  #define HIL_DATA		0x800
  #define HIL_CMD		0x801
  #define HIL_IRQ		hil_irq
@@ -53,7 +38,7 @@ MODULE_LICENSE("GPL v2");
 
 #elif defined(CONFIG_HP300)
 
- #define HILBASE		0xf0428000UL /* HP300 (m68k) port address */
+ #define HILBASE		0xf0428000UL 
  #define HIL_DATA		0x1
  #define HIL_CMD		0x3
  #define HIL_IRQ		2
@@ -66,7 +51,7 @@ MODULE_LICENSE("GPL v2");
 
 
 
-/* HIL helper functions */
+
 
 #define hil_busy()              (hil_readb(HILBASE + HIL_CMD) & HIL_BUSY)
 #define hil_data_available()    (hil_readb(HILBASE + HIL_CMD) & HIL_DATA_RDY)
@@ -75,17 +60,17 @@ MODULE_LICENSE("GPL v2");
 #define hil_read_data()         (hil_readb(HILBASE + HIL_DATA))
 #define hil_write_data(x)       do { hil_writeb((x), HILBASE + HIL_DATA); } while (0)
 
-/* HIL constants */
+
 
 #define	HIL_BUSY		0x02
 #define	HIL_DATA_RDY		0x01
 
-#define	HIL_SETARD		0xA0		/* set auto-repeat delay */
-#define	HIL_SETARR		0xA2		/* set auto-repeat rate */
-#define	HIL_SETTONE		0xA3		/* set tone generator */
-#define	HIL_CNMT		0xB2		/* clear nmi */
-#define	HIL_INTON		0x5C		/* Turn on interrupts. */
-#define	HIL_INTOFF		0x5D		/* Turn off interrupts. */
+#define	HIL_SETARD		0xA0		
+#define	HIL_SETARR		0xA2		
+#define	HIL_SETTONE		0xA3		
+#define	HIL_CNMT		0xB2		
+#define	HIL_INTON		0x5C		
+#define	HIL_INTOFF		0x5D		
 
 #define	HIL_READKBDSADR		0xF9
 #define	HIL_WRITEKBDSADR	0xE9
@@ -93,7 +78,7 @@ MODULE_LICENSE("GPL v2");
 static unsigned int hphilkeyb_keycode[HIL_KEYCODES_SET1_TBLSIZE] __read_mostly =
 	{ HIL_KEYCODES_SET1 };
 
-/* HIL structure */
+
 static struct {
 	struct input_dev *dev;
 
@@ -107,7 +92,7 @@ static struct {
 	unsigned int ptr;
 	spinlock_t lock;
 
-	void *dev_id;	/* native bus device */
+	void *dev_id;	
 } hil_dev;
 
 
@@ -132,13 +117,13 @@ static void poll_finished(void)
 static inline void handle_status(unsigned char s, unsigned char c)
 {
 	if (c & 0x8) {
-		/* End of block */
+		
 		if (c & 0x10)
 			poll_finished();
 	} else {
 		if (c & 0x10) {
 			if (hil_dev.curdev)
-				poll_finished();  /* just in case */
+				poll_finished();  
 			hil_dev.curdev = c & 7;
 			hil_dev.ptr = 0;
 		}
@@ -155,7 +140,7 @@ static inline void handle_data(unsigned char s, unsigned char c)
 }
 
 
-/* handle HIL interrupts */
+
 static irqreturn_t hil_interrupt(int irq, void *handle)
 {
 	unsigned char s, c;
@@ -181,25 +166,25 @@ static irqreturn_t hil_interrupt(int irq, void *handle)
 }
 
 
-/* send a command to the HIL */
+
 static void hil_do(unsigned char cmd, unsigned char *data, unsigned int len)
 {
 	unsigned long flags;
 
 	spin_lock_irqsave(&hil_dev.lock, flags);
 	while (hil_busy())
-		/* wait */;
+		;
 	hil_command(cmd);
 	while (len--) {
 		while (hil_busy())
-			/* wait */;
+			;
 		hil_write_data(*(data++));
 	}
 	spin_unlock_irqrestore(&hil_dev.lock, flags);
 }
 
 
-/* initialize HIL */
+
 static int __devinit hil_keyb_init(void)
 {
 	unsigned char c;
@@ -208,7 +193,7 @@ static int __devinit hil_keyb_init(void)
 	int err;
 
 	if (hil_dev.dev)
-		return -ENODEV; /* already initialized */
+		return -ENODEV; 
 
 	init_waitqueue_head(&hil_wait);
 	spin_lock_init(&hil_dev.lock);
@@ -223,11 +208,11 @@ static int __devinit hil_keyb_init(void)
 		goto err1;
 	}
 
-	/* Turn on interrupts */
+	
 	hil_do(HIL_INTON, NULL, 0);
 
-	/* Look for keyboards */
-	hil_dev.valid = 0;	/* clear any pending data */
+	
+	hil_dev.valid = 0;	
 	hil_do(HIL_READKBDSADR, NULL, 0);
 
 	wait_event_interruptible_timeout(hil_wait, hil_dev.valid, 3 * HZ);
@@ -244,7 +229,7 @@ static int __devinit hil_keyb_init(void)
 		printk(KERN_INFO "HIL: keyboard found at id %d\n", kbid);
 	}
 
-	/* set it to raw mode */
+	
 	c = 0;
 	hil_do(HIL_WRITEKBDSADR, &c, 1);
 
@@ -291,7 +276,7 @@ static void __devexit hil_keyb_exit(void)
 	if (HIL_IRQ)
 		free_irq(HIL_IRQ, hil_dev.dev_id);
 
-	/* Turn off interrupts */
+	
 	hil_do(HIL_INTOFF, NULL, 0);
 
 	input_unregister_device(hil_dev.dev);
@@ -301,7 +286,7 @@ static void __devexit hil_keyb_exit(void)
 #if defined(CONFIG_PARISC)
 static int __devinit hil_probe_chip(struct parisc_device *dev)
 {
-	/* Only allow one HIL keyboard */
+	
 	if (hil_dev.dev)
 		return -ENODEV;
 
@@ -333,7 +318,7 @@ static struct parisc_device_id hil_tbl[] = {
 };
 
 #if 0
-/* Disabled to avoid conflicts with the HP SDC HIL drivers */
+
 MODULE_DEVICE_TABLE(parisc, hil_tbl);
 #endif
 
@@ -354,13 +339,13 @@ static void __exit hil_exit(void)
 	unregister_parisc_driver(&hil_driver);
 }
 
-#else /* !CONFIG_PARISC */
+#else 
 
 static int __init hil_init(void)
 {
 	int error;
 
-	/* Only allow one HIL keyboard */
+	
 	if (hil_dev.dev)
 		return -EBUSY;
 
@@ -392,7 +377,7 @@ static void __exit hil_exit(void)
 	release_region(HILBASE + HIL_DATA, 2);
 }
 
-#endif /* CONFIG_PARISC */
+#endif 
 
 module_init(hil_init);
 module_exit(hil_exit);

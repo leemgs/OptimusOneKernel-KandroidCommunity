@@ -1,12 +1,4 @@
-/*
- * Generic implementation of a polled input device
 
- * Copyright (c) 2007 Dmitry Torokhov
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published by
- * the Free Software Foundation.
- */
 
 #include <linux/jiffies.h>
 #include <linux/mutex.h>
@@ -97,12 +89,7 @@ static void input_close_polled_device(struct input_dev *input)
 	input_polldev_stop_workqueue();
 }
 
-/**
- * input_allocate_polled_device - allocated memory polled device
- *
- * The function allocates memory for a polled device and also
- * for an input device associated with this polled device.
- */
+
 struct input_polled_dev *input_allocate_polled_device(void)
 {
 	struct input_polled_dev *dev;
@@ -121,13 +108,7 @@ struct input_polled_dev *input_allocate_polled_device(void)
 }
 EXPORT_SYMBOL(input_allocate_polled_device);
 
-/**
- * input_free_polled_device - free memory allocated for polled device
- * @dev: device to free
- *
- * The function frees memory allocated for polling device and drops
- * reference to the associated input device (if present).
- */
+
 void input_free_polled_device(struct input_polled_dev *dev)
 {
 	if (dev) {
@@ -137,16 +118,7 @@ void input_free_polled_device(struct input_polled_dev *dev)
 }
 EXPORT_SYMBOL(input_free_polled_device);
 
-/**
- * input_register_polled_device - register polled device
- * @dev: device to register
- *
- * The function registers previously initialized polled input device
- * with input layer. The device should be allocated with call to
- * input_allocate_polled_device(). Callers should also set up poll()
- * method and set up capabilities (id, name, phys, bits) of the
- * corresponing input_dev structure.
- */
+
 int input_register_polled_device(struct input_polled_dev *dev)
 {
 	struct input_dev *input = dev->input;
@@ -162,16 +134,7 @@ int input_register_polled_device(struct input_polled_dev *dev)
 }
 EXPORT_SYMBOL(input_register_polled_device);
 
-/**
- * input_unregister_polled_device - unregister polled device
- * @dev: device to unregister
- *
- * The function unregisters previously registered polled input
- * device from input layer. Polling is stopped and device is
- * ready to be freed with call to input_free_polled_device().
- * Callers should not attempt to access dev->input pointer
- * after calling this function.
- */
+
 void input_unregister_polled_device(struct input_polled_dev *dev)
 {
 	input_unregister_device(dev->input);

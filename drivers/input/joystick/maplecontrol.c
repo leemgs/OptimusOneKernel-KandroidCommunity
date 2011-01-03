@@ -1,10 +1,4 @@
-/*
- *	SEGA Dreamcast controller driver
- *	Based on drivers/usb/iforce.c
- *
- *	Copyright Yaegashi Takeshi, 2001
- *	Adrian McMenamin, 2008 - 2009
- */
+
 
 #include <linux/kernel.h>
 #include <linux/slab.h>
@@ -77,7 +71,7 @@ static void dc_pad_close(struct input_dev *dev)
 		MAPLE_FUNC_CONTROLLER);
 }
 
-/* allow the controller to be used */
+
 static int __devinit probe_maple_controller(struct device *dev)
 {
 	static const short btn_bit[32] = {
