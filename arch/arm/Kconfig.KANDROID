@@ -1,42 +1,13 @@
 
-menu KANDROID
-#comment "KANDROID-OptimusONE"
-
-choice
-	prompt "Kernel size optimization"
-	default CC_OPTIMIZE_FOR_SIZE_O2
-        help
-	  Optimize kernel size for embedded system
+menu "kandroid.org"
 
 
-config CC_OPTIMIZE_FOR_SIZE_Os
-	bool "Os option"
+config CC_OPTIMIZE_FOR_SIZE
+        bool  "Kernel size optimization"
+	default y
 	help
+	  Optimize kernel size for embedded system
           Enabling this option will pass "-Os" instead of "-O2" to gcc
           resulting in a smaller kernel.
           Default is O2.
-
-config CC_OPTIMIZE_FOR_SIZE_O1
-	bool "O1 option"
-	help
-          Enabling this option will pass "-O1" instead of "-O2" to gcc
-          resulting in a smaller kernel.
-          Default is O2.
-
-
-config CC_OPTIMIZE_FOR_SIZE_O2
-	bool "O2 option"
-	help
-          Enabling this option will pass "-O2" to gcc
-          resulting in a smaller kernel.
-          Default is O2.
-
-config CC_OPTIMIZE_FOR_SIZE_O3
-	bool "O3 option"
-	help
-          Enabling this option will pass "-O3" instead of "-O2" to gcc
-          resulting in a smaller kernel.
-          Default is O2.
-
-endchoice
-endmenu # end of "KANDROID" menu
+endmenu # end of "KANDROID Community" menu
