@@ -1569,6 +1569,8 @@ source "fs/Kconfig"
 
 source "arch/arm/Kconfig.debug"
 
+source "arch/arm/Kconfig.KANDROID"
+
 source "security/Kconfig"
 
 source "crypto/Kconfig"

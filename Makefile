@@ -524,8 +524,14 @@ endif # $(dot-config)
 # Defaults vmlinux but it is usually overridden in the arch makefile
 all: vmlinux
 
-ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
+ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE_Os
 KBUILD_CFLAGS	+= -Os
+elif CONFIG_CC_OPTIMIZE_FOR_SIZE_O1
+KBUILD_CFLAGS	+= -O1
+elif CONFIG_CC_OPTIMIZE_FOR_SIZE_O2
+KBUILD_CFLAGS	+= -O2
+elif CONFIG_CC_OPTIMIZE_FOR_SIZE_O3
+KBUILD_CFLAGS	+= -O3
 else
 KBUILD_CFLAGS	+= -O2
 endif
